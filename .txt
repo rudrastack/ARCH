@@ -1,3 +1,103 @@
 goal:arks.com
 ui insperation: https://fahertybrand.com/, https://chromeindustries.com/, https://oddritualgolf.com/, https://www.specialproduction.agency/
     https://imgs.search.brave.com/9MjlD15Wb7pFkK4CnXBWmKNvncfDr_4qvBytH02qv0U/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9hcmtz/LmNsdWIvbWVkaWEv/d3lzaXd5Zy9zbGlk/ZXIvSU1HXzg2MTYu/cG5n
+
+
+
+
+    Design a premium desktop-first Register modal for my project "ARKS".
+
+Style:
+- Luxury, editorial, minimalist.
+- Black and white color palette.
+- Inspired by high-end fashion websites.
+- Large whitespace, elegant typography.
+- Tailwind CSS only.
+- React + javascript.
+- Responsive.
+
+Layout:
+- Centered modal (max-width: 1200px).
+- Two-column layout on desktop.
+- Left side (50%): Full-height editorial lifestyle image.
+- Right side (50%): Registration form.
+
+Right Section:
+
+Heading:
+Become Part of the Community
+
+Subheading:
+Create your account to access exclusive collections and member benefits.
+
+Registration Fields:
+
+Full Name
+Email Address
+Contact Number
+Password
+
+Role Selection
+
+Provide two beautiful selectable cards or segmented buttons:
+
+○ Buyer
+○ Seller
+
+Only one can be selected at a time.
+
+Default selection: Buyer.
+
+The selected role should update:
+
+role = "buyer"
+
+or
+
+role = "seller"
+
+Submit Button:
+
+Create Account
+
+Below the button:
+
+Already have an account?
+Sign In
+
+Form Behaviour:
+
+- Floating labels or bottom-border inputs.
+- Tailwind transitions.
+- Focus border changes to black.
+- Large clickable role selector.
+- Button hover animation.
+- Responsive.
+
+State:
+
+const [formData, setFormData] = useState({
+  fullname: "",
+  email: "",
+  contact: "",
+  password: "",
+  role: "buyer",
+});
+
+Use controlled components.
+
+On submit, return:
+
+{
+  fullname,
+  email,
+  contact,
+  password,
+  role
+}
+
+Do not include username.
+
+Use Tailwind CSS only.
+
+Make the code production-ready and split into reusable components.
