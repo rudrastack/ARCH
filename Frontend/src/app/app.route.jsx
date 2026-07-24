@@ -1,10 +1,9 @@
 import { createBrowserRouter } from "react-router";
-import RegisterPage from "../features/auth/pages/Register";
-
+import { RegisterPage } from "../features/auth/pages/Register.jsx";
 export const routes = createBrowserRouter([
     {
         path: "/",
-        element: <h1>home page</h1>
+        element: <div className="min-h-screen bg-neutral-950"></div>
     },
     {
         path: "/register",
