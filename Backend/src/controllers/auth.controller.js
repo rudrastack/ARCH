@@ -17,18 +17,24 @@ async function sendTokenResponse(user, res) {
       email: user.email,
       contact: user.contact,
       fullname: user.fullname,
+       role: user.role,
     }
   })
 }
 
 export const registerUser = async (req, res) => {
   const { email, password, fullname, contact, isSeller } = req.body;
+  const normalizedContact = typeof contact === 'string' ? contact.trim() : '';
 
   try {
+    if (!normalizedContact) {
+      return res.status(400).json({ message: 'Contact information is required' });
+    }
+
     const existingUser = await userModel.findOne({
       $or: [
         { email },
-        { contact }
+        { contact: normalizedContact }
       ]
     });
 
@@ -40,7 +46,7 @@ export const registerUser = async (req, res) => {
       email,
       password,
       fullname,
-      contact,
+      contact: normalizedContact,
       role: isSeller ? "seller" : "buyer"
 
     });
@@ -53,3 +59,22 @@ export const registerUser = async (req, res) => {
   }
 
 };
+
+export const login = async (req, res) => {
+    const { email, password } = req.body;
+
+    const user = await userModel.findOne({ email });
+
+    if (!user) {
+        return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    const isMatch = await user.comparePassword(password);
+
+    if (!isMatch) {
+        return res.status(400).json({ message: "Invalid email or password" });
+    }
+
+    await sendTokenResponse(user, res, "User logged in successfully")
+}
+

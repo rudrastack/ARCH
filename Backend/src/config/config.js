@@ -2,15 +2,10 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-if (!process.env.MONGO_URI) {
-  throw new Error("MONGO_URI is not defined in the environment variables");
-}
-
-if (!process.env.JWT_SECRET) {
-  throw new Error("JWT_SECRET is not defined in the environment variables");
-}
+const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/arks";
+const JWT_SECRET = process.env.JWT_SECRET || "dev_secret";
 
 export const config = {
-  MONGO_URI: process.env.MONGO_URI,
-  JWT_SECRET: process.env.JWT_SECRET,
+  MONGO_URI,
+  JWT_SECRET,
 };

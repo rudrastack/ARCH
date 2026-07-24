@@ -4,7 +4,11 @@ function validateRequest(req, res, next) {
   
   const errors = validationResult(req);
   if(!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    const extractedErrors = errors.array();
+    return res.status(400).json({
+      message: extractedErrors[0].msg,
+      errors: extractedErrors,
+    });
   }
   next();
 }
@@ -15,7 +19,8 @@ export const validateRegisterUser = [
 
   body('contact')
   .notEmpty().withMessage('Contact information is required')
-  .matches(/^\d{10}$/).withMessage('Invalid contact number format'),
+  .isString().withMessage('Contact must be a string')
+  .matches(/^[0-9+\-\s()]{7,15}$/).withMessage('Invalid contact number format'),
 
   body('password')
   .isLength({ min: 6 }).withMessage('Password must be at least 6 characters long'),
@@ -27,3 +32,11 @@ export const validateRegisterUser = [
   .isBoolean().withMessage('isSeller must be a boolean value'),
   validateRequest
 ];
+
+export const validateLoginUser = [
+    body("email")
+        .isEmail().withMessage("Invalid email format"),
+    body("password")
+        .notEmpty().withMessage("Password is required"),
+    validateRequest
+]
