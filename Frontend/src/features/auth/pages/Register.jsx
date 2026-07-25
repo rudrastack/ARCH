@@ -968,6 +968,8 @@ export const Register = () => {
                 </span>
               </label>
 
+              <a href="/api/auth/google">continue with google</a>
+
               <button
                 type="submit"
                 disabled={loading}
