@@ -1,4 +1,4 @@
-import  jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 import userModel from "../models/user.model.js";
 import { config } from "../config/config.js";
 
@@ -20,7 +20,7 @@ export const authenticateSeller = async (req, res, next) => {
         if (user.role !== "seller") {
             return res.status(403).json({ message: "Forbidden" });
         }
-        
+
         req.user = user;
         next();
     } catch (error) {

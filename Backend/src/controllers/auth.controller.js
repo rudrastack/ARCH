@@ -26,6 +26,7 @@ export const registerUser = async (req, res) => {
   const { email, password, fullname, contact, isSeller } = req.body;
   const normalizedContact = typeof contact === 'string' ? contact.trim() : '';
 
+
   try {
     if (!normalizedContact) {
       return res.status(400).json({ message: 'Contact information is required' });
@@ -57,6 +58,8 @@ export const registerUser = async (req, res) => {
     console.error('Error registering user:', error);
     res.status(500).json({ message: 'Server error' });
   }
+
+
 
 };
 

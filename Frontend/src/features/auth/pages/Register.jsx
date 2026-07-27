@@ -32,7 +32,7 @@
 //         navigate("/");
 //     };
 
-    
+
 
 //     return()
 //   }
@@ -560,7 +560,7 @@
 
 //   const handleSignInClick = (e) => {
 //     e.preventDefault();
-  
+
 //   };
 
 //   return (
@@ -660,7 +660,6 @@ export const Register = () => {
     password: "",
     isSeller: false,
   });
-
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
 
@@ -701,6 +700,7 @@ export const Register = () => {
   const handleBlur = (e) => {
     e.target.style.borderBottomColor = "#d0c5b5";
   };
+
 
   return (
     <>
@@ -815,7 +815,7 @@ export const Register = () => {
             )}
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-9">
-                          {/* Full Name */}
+              {/* Full Name */}
               <div className="flex flex-col gap-2">
                 <label
                   htmlFor="reg-fullName"

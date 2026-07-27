@@ -8,8 +8,8 @@ const client = new ImageKit({
 export async function uploadFile({ buffer, filename, folder = "ARKS" }) {
     const result = await client.files.upload({
         file: await ImageKit.toFile(buffer),
-        fileName,
+        fileName: filename,
         folder
-    });
+    })
     return result
 }

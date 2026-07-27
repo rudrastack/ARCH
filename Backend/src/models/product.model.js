@@ -10,26 +10,24 @@ const ProductSchema = new mongoose.Schema({
         required: true,
     },
     price: {
-       amount: {
-           type: Number,
-           required: true,
-       },
-       currency: {
-           type: String,
-           required: true,
-           default: "INR"
-       }
-    },
-    images: {
-        url:{
-            type: String,
-            required: true
+        amount: {
+            type: Number,
+            required: true,
         },
-        alt: {
+        currency: {
+            type: String,
+            required: true,
+            default: "INR"
+        }
+    },
+    images: [
+        {
+        url: {
             type: String,
             required: true
         }
-    },
+    }
+],
     seller: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "user",
@@ -43,4 +41,3 @@ const ProductModel = mongoose.model('Product', ProductSchema);
 
 export default ProductModel;
 
- 
