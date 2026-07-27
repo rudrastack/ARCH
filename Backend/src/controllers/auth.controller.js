@@ -17,7 +17,7 @@ async function sendTokenResponse(user, res) {
       email: user.email,
       contact: user.contact,
       fullname: user.fullname,
-       role: user.role,
+      role: user.role,
     }
   })
 }
@@ -61,25 +61,44 @@ export const registerUser = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-    const { email, password } = req.body;
+  const { email, password } = req.body;
 
-    const user = await userModel.findOne({ email });
+  const user = await userModel.findOne({ email });
 
-    if (!user) {
-        return res.status(400).json({ message: "Invalid email or password" });
-    }
+  if (!user) {
+    return res.status(400).json({ message: "Invalid email or password" });
+  }
 
-    const isMatch = await user.comparePassword(password);
+  const isMatch = await user.comparePassword(password);
 
-    if (!isMatch) {
-        return res.status(400).json({ message: "Invalid email or password" });
-    }
+  if (!isMatch) {
+    return res.status(400).json({ message: "Invalid email or password" });
+  }
 
-    await sendTokenResponse(user, res, "User logged in successfully")
+  await sendTokenResponse(user, res, "User logged in successfully")
 }
 
-export const googleCallback = async(req, res) =>{
+export const googleCallback = async (req, res) => {
+  const { id, displayName, emails } = req.user
+  const email = req.user.emails[0].value
+
+  let user = await userModel.findOne({ email })
+
+  if (!user) {
+    user = await userModel.create({
+      email,
+      googleId: id,
+      fullname: displayName,
+    })
+  }
+
+  const token = jwt.sign({
+    id: user._id,
+  }, config.JWT_SECRET, { expiresIn: '7d' })
+
+  res.cookie('token', token)
+
   res.redirect("http://localhost:5173/")
-  
+
 }
 

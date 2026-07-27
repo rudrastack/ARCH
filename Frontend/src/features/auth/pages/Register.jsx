@@ -647,6 +647,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "../hook/useAuth";
+import ContinueWithGoogle from "../components/ContinueWithGoogle";
 
 export const Register = () => {
   const { handleRegister, loading, error } = useAuth();
@@ -968,7 +969,6 @@ export const Register = () => {
                 </span>
               </label>
 
-              <a href="/api/auth/google">continue with google</a>
 
               <button
                 type="submit"
@@ -998,6 +998,8 @@ export const Register = () => {
                   style={{ backgroundColor: "#e4e2df" }}
                 />
               </div>
+
+              <ContinueWithGoogle />
               <p
                 className="text-center text-[11px]"
                 style={{ color: "#B5ADA3" }}

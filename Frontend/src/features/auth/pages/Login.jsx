@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from "../hook/useAuth";
 import { useNavigate } from "react-router";
+import ContinueWithGoogle from "../components/ContinueWithGoogle";
 
 export const Login = () => {
     const { handleLogin } = useAuth();
@@ -217,7 +218,7 @@ export const Login = () => {
                                 <span className="text-[10px] uppercase tracking-[0.15em]" style={{ color: '#B5ADA3' }}>or</span>
                                 <div className="flex-1 h-px" style={{ backgroundColor: '#e4e2df' }} />
                             </div>
-
+                            <ContinueWithGoogle />
                             {/* Google SSO */}
 
 
