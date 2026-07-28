@@ -1,17 +1,30 @@
 import { createBrowserRouter } from "react-router";
-import { Register } from "../features/auth/pages/Register.jsx";
-import { Login } from "../features/auth/pages/Login.jsx";
+import RegisterPage from "../features/auth/pages/Register.jsx";
+import LoginPage from "../features/auth/pages/Login.jsx";
+import CreateProduct from "../features/products/pages/CreateProduct.jsx";
+import GetSellerProducts from "../features/products/pages/GetSellerProducts.jsx";
+
+console.log("NEW ROUTER LOADED");
+
 export const routes = createBrowserRouter([
     {
         path: "/",
-        element: <h1>Home page </h1>
+        element: <h1 style={{ color: "white" }}>Home page</h1>,
     },
     {
         path: "/register",
-        element: <Register />
+        element: <RegisterPage />
     },
     {
         path: "/login",
-        element: <Login />
-    }
-]);
+        element: <LoginPage />
+    },
+    {
+        path: "/create",
+        element: <CreateProduct />,
+    },
+    {
+        path: "/get",
+        element: <GetSellerProducts />,
+    },
+])
