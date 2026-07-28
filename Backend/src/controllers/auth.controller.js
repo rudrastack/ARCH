@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import { config } from "../config/config.js";
 
 
-async function sendTokenResponse(user, res) {
+async function sendTokenResponse(user, res, messages) {
   const token = jwt.sign({
     id: user._id,
   }, config.JWT_SECRET)
@@ -11,6 +11,7 @@ async function sendTokenResponse(user, res) {
   res.cookie('token', token)
 
   res.status(200).json({
+    messages,
     success: true,
     user: {
       id: user._id,

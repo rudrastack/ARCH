@@ -30,3 +30,13 @@ export async function CreateProduct(req, res) {
         product
     });
 }
+
+export async function GetProducts(req, res) {
+    const seller = req.user
+    const products = await ProductModel.find({ seller: seller._id });
+    res.status(200).json({
+        message: "Products fetched successfully",
+        success: true,
+        products
+    });
+}
