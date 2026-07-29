@@ -2,70 +2,6 @@ import { useProduct } from "../hook/useProduct";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 
-// High-fashion mockup images from Unsplash
-const MOCK_PRODUCTS = [
-    {
-        id: "prod_1",
-        title: "L'Automne Cashmere Overcoat",
-        description: "An unstructured double-breasted overcoat tailored from an exquisite, thick-grain virgin cashmere and wool blend. Features hand-finished pick stitching and horn buttons.",
-        priceAmount: 1850,
-        priceCurrency: "USD",
-        images: ["https://images.unsplash.com/photo-1539109136881-3be0616acf4b?q=80&w=600&auto=format&fit=crop"],
-        category: "Outerwear",
-        createdAt: "2026-07-20T10:00:00Z"
-    },
-    {
-        id: "prod_2",
-        title: "Calfskin Chelsea Boots",
-        description: "Italian tanned full-grain calfskin boots with custom elastic gussets, premium cork-filled footbed, and a durable stacked leather sole. Crafted by hand in Tuscany.",
-        priceAmount: 620,
-        priceCurrency: "USD",
-        images: ["https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=600&auto=format&fit=crop"],
-        category: "Footwear",
-        createdAt: "2026-07-22T14:30:00Z"
-    },
-    {
-        id: "prod_3",
-        title: "Silk Asymmetric Editorial Gown",
-        description: "Flowing mid-weight silk crepe de chine gown featuring an asymmetric neckline, a gathered waist detail, and a dramatic floor-grazing sash.",
-        priceAmount: 2400,
-        priceCurrency: "EUR",
-        images: ["https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=600&auto=format&fit=crop"],
-        category: "Tailoring",
-        createdAt: "2026-07-25T09:15:00Z"
-    },
-    {
-        id: "prod_4",
-        title: "Suede Safari Jacket",
-        description: "A tailored take on a military classic, cut from ultra-soft lambskin suede. Internal drawstring waist and double-vented back for maximum comfort.",
-        priceAmount: 1450,
-        priceCurrency: "USD",
-        images: ["https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=600&auto=format&fit=crop"],
-        category: "Outerwear",
-        createdAt: "2026-07-26T18:00:00Z"
-    },
-    {
-        id: "prod_5",
-        title: "Structured Wool Blazer",
-        description: "Classic double-breasted silhouette with pronounced shoulders, sharp peak lapels, and custom silver hardware. Fully lined in cupro.",
-        priceAmount: 980,
-        priceCurrency: "GBP",
-        images: ["https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=600&auto=format&fit=crop"],
-        category: "Tailoring",
-        createdAt: "2026-07-27T11:45:00Z"
-    },
-    {
-        id: "prod_6",
-        title: "Monochrome Knit Scarf",
-        description: "Heavyweight chunky rib knit scarf in an extra-long cut, woven from pure organic extrafine merino wool. Extremely soft texture.",
-        priceAmount: 280,
-        priceCurrency: "USD",
-        images: ["https://images.unsplash.com/photo-1509631179647-0177331693ae?q=80&w=600&auto=format&fit=crop"],
-        category: "Accessories",
-        createdAt: "2026-07-28T08:00:00Z"
-    }
-];
-
 export default function GetSellerProducts() {
     const { handleGetSellerProducts } = useProduct();
     const navigate = useNavigate();
@@ -89,21 +25,13 @@ export default function GetSellerProducts() {
             setLoading(true);
             try {
                 // Call hook if integrated
-                const data = await handleGetSellerProducts();
-                if (data && data.length > 0) {
-                    setProducts(data);
-                } else {
-                    // Fallback to mockup data for premium visual demo
-                    setProducts(MOCK_PRODUCTS);
-                }
+                const products = await handleGetSellerProducts();
+                setProducts(products);
             } catch (error) {
                 console.warn("API Error, using mockup fallback catalog:", error);
-                setProducts(MOCK_PRODUCTS);
+                setProducts(products);
             } finally {
-                // Keep loading visible briefly to appreciate the premium skeleton screens
-                setTimeout(() => {
-                    setLoading(false);
-                }, 1000);
+                setLoading(false);
             }
         };
 
@@ -145,10 +73,10 @@ export default function GetSellerProducts() {
     // Delete item handler
     const handleDeleteProduct = (productId, e) => {
         e.stopPropagation();
-        const productTitle = products.find(p => p.id === productId)?.title;
+        const productTitle = products.find(p => p._id === productId)?.title;
 
         // Remove locally from state
-        setProducts(prev => prev.filter(p => p.id !== productId));
+        setProducts(prev => prev.filter(p => p._id !== productId));
 
         setNotification({
             type: "success",
@@ -258,7 +186,7 @@ export default function GetSellerProducts() {
 
                             {/* Add Product Button */}
                             <button
-                                onClick={() => navigate("/seller/create")}
+                                onClick={() => navigate("/create")}
                                 className="px-6 py-3.5 text-[11px] uppercase tracking-[0.2em] font-semibold transition-all duration-300 border border-[#1b1c1a] flex items-center gap-2 group rounded-lg"
                                 style={{ backgroundColor: "#1b1c1a", color: "#fbf9f6" }}
                                 onMouseEnter={(e) => {
@@ -409,14 +337,14 @@ export default function GetSellerProducts() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
                             {filteredProducts.map((product) => (
                                 <div
-                                    key={product.id}
+                                    key={product._id}
                                     className="group bg-white border border-[#e4e2df] hover:border-[#C9A96E] transition-all duration-500 flex flex-col justify-between overflow-hidden shadow-sm hover:shadow-[0_12px_40px_rgba(201,169,110,0.08)] rounded-2xl"
                                 >
                                     {/* Thumbnail container */}
                                     <div className="relative aspect-[3/4] overflow-hidden bg-[#fbf9f6] border-b border-[#f5f3f0]">
                                         {product.images && product.images[0] ? (
                                             <img
-                                                src={product.images[0]}
+                                                src={product.images?.[0]?.url}
                                                 alt={product.title}
                                                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                                             />
@@ -439,7 +367,7 @@ export default function GetSellerProducts() {
                                                 </svg>
                                             </button>
                                             <button
-                                                onClick={(e) => handleEditProduct(product.id, e)}
+                                                onClick={(e) => handleEditProduct(product._id, e)}
                                                 className="p-2.5 bg-white text-[#1b1c1a] hover:bg-[#C9A96E] hover:text-white transition-colors shadow-md rounded-full"
                                                 title="Edit Piece"
                                             >
@@ -448,7 +376,7 @@ export default function GetSellerProducts() {
                                                 </svg>
                                             </button>
                                             <button
-                                                onClick={(e) => handleDeleteProduct(product.id, e)}
+                                                onClick={(e) => handleDeleteProduct(product._id, e)}
                                                 className="p-2.5 bg-white text-[#1b1c1a] hover:bg-red-600 hover:text-white transition-colors shadow-md rounded-full"
                                                 title="Archive Piece"
                                             >
@@ -480,7 +408,8 @@ export default function GetSellerProducts() {
                                                 Retail Price
                                             </span>
                                             <span className="text-sm font-semibold tracking-wide text-[#C9A96E]">
-                                                {getCurrencySymbol(product.priceCurrency)} {product.priceAmount.toLocaleString()}
+                                                {getCurrencySymbol(product.price?.currency)}
+                                                {product.price?.amount?.toLocaleString()}
                                             </span>
                                         </div>
                                     </div>
@@ -505,7 +434,7 @@ export default function GetSellerProducts() {
                         <div className="relative aspect-square md:aspect-auto bg-[#fbf9f6] flex items-center justify-center border-r border-[#f5f3f0] min-h-[350px]">
                             {selectedProduct.images && selectedProduct.images[0] ? (
                                 <img
-                                    src={selectedProduct.images[0]}
+                                    src={selectedProduct.images?.[0]?.url}
                                     alt={selectedProduct.title}
                                     className="w-full h-full object-cover"
                                 />
@@ -553,7 +482,8 @@ export default function GetSellerProducts() {
                                         Valuation
                                     </span>
                                     <span className="text-2xl font-semibold tracking-wide text-[#C9A96E]">
-                                        {getCurrencySymbol(selectedProduct.priceCurrency)} {selectedProduct.priceAmount.toLocaleString()}
+                                        {getCurrencySymbol(selectedProduct.price?.currency)}
+                                        {selectedProduct.price?.amount?.toLocaleString()}
                                     </span>
                                 </div>
 

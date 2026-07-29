@@ -132,11 +132,11 @@ export default function CreateProduct() {
     const removeImage = (id, e) => {
         e.stopPropagation();
         setImages((prev) => {
-            const target = prev.find((img) => img.id === id);
+            const target = prev.find((img) => img._id === id);
             if (target && target.url) {
                 URL.revokeObjectURL(target.url);
             }
-            return prev.filter((img) => img.id !== id);
+            return prev.filter((img) => img._id !== id);
         });
     };
 
@@ -166,12 +166,16 @@ export default function CreateProduct() {
         setLoading(true);
         try {
             // Prepare payload
-            const imageUrls = images.map((img) => img.url);
-            const payload = {
-                ...formData,
-                priceAmount: parseFloat(formData.priceAmount),
-                images: imageUrls,
-            };
+            const payload = new FormData();
+
+            payload.append("title", formData.title);
+            payload.append("description", formData.description);
+            payload.append("priceAmount", parseFloat(formData.priceAmount));
+            payload.append("priceCurrency", formData.priceCurrency);
+
+            images.forEach((img) => {
+                payload.append("images", img.file); // ✅ Send the actual File
+            });
 
             // Call API via hook
             await handleCreateProduct(payload);
@@ -183,7 +187,7 @@ export default function CreateProduct() {
 
             // Redirect back to dashboard after brief delay
             setTimeout(() => {
-                navigate("/seller/get");
+                navigate("/get");
             }, 1500);
         } catch (error) {
             console.error("Failed to create product:", error);
@@ -193,7 +197,7 @@ export default function CreateProduct() {
             });
             // Show offline success for design verification
             setTimeout(() => {
-                navigate("/seller/get");
+                navigate("/get");
             }, 2000);
         } finally {
             setLoading(false);
@@ -216,7 +220,7 @@ export default function CreateProduct() {
                 <div className="max-w-7xl mx-auto mb-16 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-[#e4e2df] pb-6">
                     <div>
                         <span
-                            onClick={() => navigate("/seller/get")}
+                            onClick={() => navigate("/get")}
                             className="text-[10px] uppercase tracking-[0.25em] text-[#7A6E63] hover:text-[#C9A96E] transition-colors cursor-pointer flex items-center gap-2 mb-4 group"
                         >
                             <svg
@@ -449,8 +453,8 @@ export default function CreateProduct() {
                                 onDrop={handleDrop}
                                 onClick={triggerFileInput}
                                 className={`w-full py-12 px-6 border-2 border-dashed rounded-xl transition-all duration-300 flex flex-col items-center justify-center cursor-pointer text-center ${dragActive
-                                        ? "border-[#C9A96E] bg-[#C9A96E]/5"
-                                        : "border-[#d0c5b5] hover:border-[#7A6E63] bg-[#fbf9f6]/30 hover:bg-[#fbf9f6]"
+                                    ? "border-[#C9A96E] bg-[#C9A96E]/5"
+                                    : "border-[#d0c5b5] hover:border-[#7A6E63] bg-[#fbf9f6]/30 hover:bg-[#fbf9f6]"
                                     }`}
                             >
                                 <svg

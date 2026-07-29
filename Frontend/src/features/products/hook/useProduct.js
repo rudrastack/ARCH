@@ -14,6 +14,7 @@ export const useProduct = () => {
 
     async function handleGetSellerProducts() {
         const data = await getSellerProducts()
+        console.log("Data from API:", data);
         dispatch(setSellerProducts(data.products))
         return data.products
     }
