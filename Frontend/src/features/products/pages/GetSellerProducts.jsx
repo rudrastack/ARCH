@@ -19,6 +19,9 @@ export default function GetSellerProducts() {
     const [selectedProduct, setSelectedProduct] = useState(null); // for View Modal
     const [notification, setNotification] = useState(null);
 
+    // Current image index state
+    const [currentImageIndex, setCurrentImageIndex] = useState({});
+
     // Initial Loading Simulation (with fallback to mockup)
     useEffect(() => {
         const loadProducts = async () => {
@@ -104,6 +107,22 @@ export default function GetSellerProducts() {
             case "AUD": return "A$";
             default: return "$";
         }
+    };
+
+    // Carousel Image Change Handlers
+    const nextImage = (productId, totalImages) => {
+        setCurrentImageIndex((prev) => ({
+            ...prev,
+            [productId]: ((prev[productId] || 0) + 1) % totalImages,
+        }));
+    };
+
+    const prevImage = (productId, totalImages) => {
+        setCurrentImageIndex((prev) => ({
+            ...prev,
+            [productId]:
+                ((prev[productId] || 0) - 1 + totalImages) % totalImages,
+        }));
     };
 
     return (
@@ -431,21 +450,45 @@ export default function GetSellerProducts() {
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Modal Image Carousel Side */}
-                        <div className="relative aspect-square md:aspect-auto bg-[#fbf9f6] flex items-center justify-center border-r border-[#f5f3f0] min-h-[350px]">
-                            {selectedProduct.images && selectedProduct.images[0] ? (
-                                <img
-                                    src={selectedProduct.images?.[0]?.url}
-                                    alt={selectedProduct.title}
-                                    className="w-full h-full object-cover"
-                                />
-                            ) : (
-                                <span className="text-xs text-[#B5ADA3]">No Image</span>
-                            )}
+                        <div className="relative aspect-square overflow-hidden">
+                            <div
+                                className="flex h-full transition-transform duration-500 ease-in-out"
+                                style={{
+                                    transform: `translateX(-${(currentImageIndex[selectedProduct._id] || 0) * 100
+                                        }%)`,
+                                }}
+                            >
+                                {selectedProduct.images?.map((img) => (
+                                    <img
+                                        key={img._id}
+                                        src={img.url}
+                                        alt={selectedProduct.title}
+                                        className="w-full h-full object-cover flex-shrink-0"
+                                    />
+                                ))}
+                            </div>
 
-                            {/* Premium editorial water-mark overlay */}
-                            <span className="absolute bottom-6 left-6 text-[10px] tracking-[0.4em] uppercase text-white/70 drop-shadow-xs">
-                                Snitch. Atelier
-                            </span>
+                            {/* Previous */}
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    prevImage(selectedProduct._id, selectedProduct.images.length);
+                                }}
+                                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white w-8 h-8 rounded-full"
+                            >
+                                ❮
+                            </button>
+
+                            {/* Next */}
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    nextImage(selectedProduct._id, selectedProduct.images.length);
+                                }}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white w-8 h-8 rounded-full"
+                            >
+                                ❯
+                            </button>
                         </div>
 
                         {/* Modal Detail Side */}
