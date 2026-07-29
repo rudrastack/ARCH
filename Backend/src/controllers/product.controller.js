@@ -44,3 +44,12 @@ export async function GetProducts(req, res) {
         products
     });
 }
+
+export async function GetAllProducts(req, res) {
+    const products = await ProductModel.find();
+    res.status(200).json({
+        message: "Products fetched successfully",
+        success: true,
+        products
+    });
+}

@@ -31,9 +31,9 @@ export const Login = () => {
                 console.log("Navigating...");
                 navigate("/");
             }
-            // else if (user.role == "seller") {
-            //     navigate("/seller/dashboard");
-            // }
+            else if (user.role == "seller") {
+                navigate("/get");
+            }
         } catch (error) {
             console.error("Login failed", error);
         }
