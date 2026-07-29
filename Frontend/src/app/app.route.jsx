@@ -4,8 +4,6 @@ import LoginPage from "../features/auth/pages/Login.jsx";
 import CreateProduct from "../features/products/pages/CreateProduct.jsx";
 import GetSellerProducts from "../features/products/pages/GetSellerProducts.jsx";
 
-console.log("NEW ROUTER LOADED");
-
 export const routes = createBrowserRouter([
     {
         path: "/",
