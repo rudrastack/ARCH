@@ -31,7 +31,7 @@ export const Login = () => {
                 console.log("Navigating...");
                 navigate("/");
             }
-            else if (user.role == "seller") {
+            else if (user.role === "seller") {
                 navigate("/seller/get");
             }
         } catch (error) {

@@ -2,9 +2,65 @@ goal:arks.com
 ui insperation: https://fahertybrand.com/, https://chromeindustries.com/, https://oddritualgolf.com/, https://www.specialproduction.agency/
     https://imgs.search.brave.com/9MjlD15Wb7pFkK4CnXBWmKNvncfDr_4qvBytH02qv0U/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9hcmtz/LmNsdWIvbWVkaWEv/d3lzaXd5Zy9zbGlk/ZXIvSU1HXzg2MTYu/cG5n
 
+// For homepage
+Design a premium animated landing page in my Home.jsx file for my fashion community website "ARKS Replica" with the help of stitch.
+
+The experience should feel cinematic and editorial.
+
+Requirements:
+
+- Full-screen intro animation before the homepage appears.
+- Black loading screen.
+- Large centered logo that fades and scales in.
+- After loading, reveal the homepage using a smooth vertical wipe transition.
+- Hero image should animate using scale and clip-path.
+- Heading should reveal line by line.
+- Navbar fades in after hero animation.
+- Buttons should have magnetic hover effects.
+- Mouse follower with subtle blend mode.
+- Smooth scrolling using Lenis.
+- Animations using GSAP.
+- Framer Motion for page transitions.
+- Tailwind CSS.
+- React.
+- Desktop-first but fully responsive.
+- When the website loads, show the landing page with all products and animations.
+- After 4 seconds automatically open a Login/Register modal.
+- The modal is only an overlay.
+- Do not navigate to another route just the existing Login/Register route .
+- Do not replace the page.
+- The user should continue browsing the landing page underneath the modal.
+- The registration form should call my existing register API using these fields:
+
+fullname
+email
+contact
+password
+role
+
+After successful registration:
+
+-close the modal
+-store authentication
+-keep the user on the same landing page
+-do not redirect
+-allow shopping to continue
+
+The Register component must be a reusable modal component only.
+
+Design style:
+Luxury fashion.
+Minimal.
+Editorial.
+Large typography.
+Black and white.
+High-end photography.
+Lots of whitespace.
+
+do all this in just one existing file Home.jsx
 
 
-
+   //for Register Page 
     Design a premium desktop-first Register modal for my project "ARKS".
 
 Style:

@@ -4,11 +4,12 @@ import LoginPage from "../features/auth/pages/Login.jsx";
 import CreateProduct from "../features/products/pages/CreateProduct.jsx";
 import GetSellerProducts from "../features/products/pages/GetSellerProducts.jsx";
 import Protected from "../features/auth/components/Protected.jsx";
+import Home from "../features/products/pages/Home.jsx";
 
 export const routes = createBrowserRouter([
     {
         path: "/",
-        element: <h1 style={{ color: "white" }}>Home page</h1>,
+        element: <Home />,
     },
     {
         path: "/register",
