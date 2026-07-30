@@ -205,7 +205,7 @@ export default function GetSellerProducts() {
 
                             {/* Add Product Button */}
                             <button
-                                onClick={() => navigate("/create")}
+                                onClick={() => navigate("/seller/create")}
                                 className="px-6 py-3.5 text-[11px] uppercase tracking-[0.2em] font-semibold transition-all duration-300 border border-[#1b1c1a] flex items-center gap-2 group rounded-lg"
                                 style={{ backgroundColor: "#1b1c1a", color: "#fbf9f6" }}
                                 onMouseEnter={(e) => {

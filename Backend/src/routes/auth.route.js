@@ -20,11 +20,11 @@ router.get("/google/callback", passport.authenticate("google", { session: false,
 )
 
 /**
- * @route GET /api/auth/getme
+ * @route GET /api/auth/get-me
  * @description Get the authenticated user's profile
  * @access Private
  */
-router.get('getme', authenticateUser, getMe)
+router.get('/get-me', authenticateUser, getMe)
 
 
 

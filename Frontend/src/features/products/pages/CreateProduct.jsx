@@ -187,7 +187,7 @@ export default function CreateProduct() {
 
             // Redirect back to dashboard after brief delay
             setTimeout(() => {
-                navigate("/get");
+                navigate("/seller/get");
             }, 1500);
         } catch (error) {
             console.error("Failed to create product:", error);
@@ -197,7 +197,7 @@ export default function CreateProduct() {
             });
             // Show offline success for design verification
             setTimeout(() => {
-                navigate("/get");
+                navigate("/seller/get");
             }, 2000);
         } finally {
             setLoading(false);
@@ -220,7 +220,7 @@ export default function CreateProduct() {
                 <div className="max-w-7xl mx-auto mb-16 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-[#e4e2df] pb-6">
                     <div>
                         <span
-                            onClick={() => navigate("/get")}
+                            onClick={() => navigate("/seller/get")}
                             className="text-[10px] uppercase tracking-[0.25em] text-[#7A6E63] hover:text-[#C9A96E] transition-colors cursor-pointer flex items-center gap-2 mb-4 group"
                         >
                             <svg

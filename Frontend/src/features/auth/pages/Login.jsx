@@ -32,7 +32,7 @@ export const Login = () => {
                 navigate("/");
             }
             else if (user.role == "seller") {
-                navigate("/get");
+                navigate("/seller/get");
             }
         } catch (error) {
             console.error("Login failed", error);
