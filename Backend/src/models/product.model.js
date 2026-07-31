@@ -27,13 +27,14 @@ const ProductSchema = new mongoose.Schema({
             required: true
         }
     }
-],
+   ],
     seller: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "user",
         required: true,
     },
-}, {
+},
+{
     timestamps: true
 });
 
