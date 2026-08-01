@@ -1,6 +1,6 @@
 import { useProduct } from "../hook/useProduct";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 export default function GetSellerProducts() {
     const { handleGetSellerProducts } = useProduct();

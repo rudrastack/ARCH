@@ -1,5 +1,5 @@
 import './App.css';
-import { RouterProvider } from 'react-router';
+import { RouterProvider } from 'react-router-dom';
 import { routes } from './app.route.jsx';
 import { useSelector } from 'react-redux';
 import { useEffect } from 'react';

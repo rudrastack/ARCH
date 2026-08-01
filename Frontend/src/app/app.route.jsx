@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router";
+import { createBrowserRouter } from "react-router-dom";
 import RegisterPage from "../features/auth/pages/Register.jsx";
 import LoginPage from "../features/auth/pages/Login.jsx";
 import CreateProduct from "../features/products/pages/CreateProduct.jsx";

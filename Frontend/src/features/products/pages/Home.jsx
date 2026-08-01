@@ -6,6 +6,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from '@studio-freight/lenis';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 // ============================================================
 // 1. MAIN HOME PAGE ORCHESTRATION
@@ -666,6 +667,8 @@ function ModelShootSection() {
 // 7. FEATURED COLLECTION
 // ============================================================
 function FeaturedCollection({ products, onOpenAuth }) {
+    const navigate = useNavigate();
+
     return (
         <section id="collections" className="py-28 bg-[#fbf9f6] px-6 md:px-12 lg:px-20">
             <div className="max-w-[1440px] mx-auto mb-16 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
@@ -682,6 +685,7 @@ function FeaturedCollection({ products, onOpenAuth }) {
                 </div>
                 <MagneticButton
                     onClick={() => onOpenAuth('register')}
+
                     className="px-8 py-3.5 border border-[#1b1c1a] text-[10px] uppercase tracking-[0.25em] text-[#1b1c1a] font-medium hover:bg-[#1b1c1a] hover:text-[#fbf9f6] transition-all duration-300"
                 >
                     View Full Vault
@@ -693,11 +697,11 @@ function FeaturedCollection({ products, onOpenAuth }) {
                 {(products && products.length > 0 ? products : fallbackProducts).map((products, i) => (
                     <motion.div
                         key={products._id || products.id || i}
-                        initial={{ opacity: 0, y: 30 }}
+                        onClick={() => navigate(`/details/${products._id}`)}
+                        className="group bg-[#fbf9f6] border border-[#e4e2df] p-4 cursor-pointer" initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, margin: '-50px' }}
                         transition={{ duration: 0.6, delay: i * 0.1 }}
-                        className="group bg-[#fbf9f6] border border-[#e4e2df] p-4 text-left transition-all duration-300 hover:border-[#1b1c1a]"
                     >
                         <div className="relative aspect-[3/4] overflow-hidden bg-[#f5f3f0] mb-4">
                             {products.images && products.images[0] ? (

@@ -1,6 +1,6 @@
 import { useProduct } from "../hook/useProduct";
 import { useState, useRef, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 export default function CreateProduct() {
     const { handleCreateProduct } = useProduct();
