@@ -5,11 +5,16 @@ import CreateProduct from "../features/products/pages/CreateProduct.jsx";
 import GetSellerProducts from "../features/products/pages/GetSellerProducts.jsx";
 import Protected from "../features/auth/components/Protected.jsx";
 import Home from "../features/products/pages/Home.jsx";
+import ProductDetails from "../features/products/pages/ProductDetails.jsx";
 
 export const routes = createBrowserRouter([
     {
         path: "/",
         element: <Home />,
+    },
+    {
+        path: "/details/:productId",
+        element: <ProductDetails />,
     },
     {
         path: "/register",

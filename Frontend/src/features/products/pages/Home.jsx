@@ -31,7 +31,6 @@ export default function Home() {
         loadProducts();
     }, []);
 
-    console.log(products)
 
     // Auto-trigger auth modal after 4 seconds if not logged in
     useEffect(() => {

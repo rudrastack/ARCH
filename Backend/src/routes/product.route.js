@@ -12,9 +12,7 @@ const upload = multer({
     }
 });
 
-
 const router = Router();
-
 
 /**
  * @route POST /api/products
@@ -43,7 +41,5 @@ router.get('/', GetAllProducts)
  * @access Public
  */
 router.get('/details/:id', GetProductDetails)
-
-
 
 export default router;
