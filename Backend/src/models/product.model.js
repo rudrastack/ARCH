@@ -33,6 +33,49 @@ const ProductSchema = new mongoose.Schema({
         ref: "user",
         required: true,
     },
+    variants: [
+        {
+            images: [
+                {
+                    url: {
+                        type: String,
+                        required: true
+                    }
+                }
+            ],
+            stock: {
+                type: Number,
+                required: true,
+            },
+            title: {
+                type: String,
+                required: true,
+            },
+            price: {
+                amount: {
+                    type: Number,
+                    required: true,
+                },
+                currency: {
+                    type: String,
+                    required: true,
+                    default: "INR"
+                }
+            },
+            attributes: [
+                {
+                    name: {
+                        type: String,
+                        required: true,
+                    },
+                    value: {
+                        type: String,
+                        required: true,
+                    }
+                }
+            ]
+        }
+    ]
 },
 {
     timestamps: true
