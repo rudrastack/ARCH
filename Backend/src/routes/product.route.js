@@ -23,7 +23,7 @@ router.post('/seller/create', authenticateSeller,upload.array('images', 7), Crea
 
 /**
  * @route POST /api/products
- * @description Get all products by seller
+ * @description Get all products created by seller
  * @access Private (Seller only)
  */
 router.get('/seller/get', authenticateSeller, GetProducts)
@@ -37,7 +37,7 @@ router.get('/', GetAllProducts)
 
 /**
  * @route GET /api/products
- * @description Get all products
+ * @description Get all products Details
  * @access Public
  */
 router.get('/details/:id', GetProductDetails)
