@@ -33,7 +33,7 @@ const ProductSchema = new mongoose.Schema({
         ref: "user",
         required: true,
     },
-    variants: [
+   variants: [
         {
             images: [
                 {
@@ -45,11 +45,11 @@ const ProductSchema = new mongoose.Schema({
             ],
             stock: {
                 type: Number,
-                required: true,
+                default: 0
             },
-            title: {
-                type: String,
-                required: true,
+            attributes: {
+                type: Map,
+                of: String
             },
             price: {
                 amount: {
@@ -61,20 +61,9 @@ const ProductSchema = new mongoose.Schema({
                     required: true,
                     default: "INR"
                 }
-            },
-            attributes: [
-                {
-                    name: {
-                        type: String,
-                        required: true,
-                    },
-                    value: {
-                        type: String,
-                        required: true,
-                    }
-                }
-            ]
-        }
+            }
+        },
+
     ]
 },
 {
