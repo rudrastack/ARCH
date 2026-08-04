@@ -47,7 +47,7 @@
 //   value,
 //   onChange,
 //   required = false,
-//   autoComplete, 
+//   autoComplete,
 //   error,
 // }) {
 //   const [isFocused, setIsFocused] = useState(false);
@@ -644,8 +644,389 @@
 //     </div>
 //   );
 // }
-import { useState } from "react";
+
+// import { useState } from "react";
+// import { useNavigate } from "react-router-dom";
+// import { useAuth } from "../hook/useAuth";
+// import ContinueWithGoogle from "../components/ContinueWithGoogle";
+
+// export const Register = () => {
+//   const { handleRegister, loading, error } = useAuth();
+//   const navigate = useNavigate();
+
+//   const [formData, setFormData] = useState({
+//     fullName: "",
+//     contactNumber: "",
+//     email: "",
+//     password: "",
+//     isSeller: false,
+//   });
+//   const handleChange = (e) => {
+//     const { name, value, type, checked } = e.target;
+
+//     setFormData((prev) => ({
+//       ...prev,
+//       [name]: type === "checkbox" ? checked : value,
+//     }));
+//   };
+
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+
+//     try {
+//       await handleRegister({
+//         email: formData.email,
+//         password: formData.password,
+//         fullname: formData.fullName,
+//         contact: formData.contactNumber,
+//         isSeller: formData.isSeller,
+//       });
+
+//       navigate("/");
+//     } catch (err) {
+//       console.error("Registration failed:", err);
+//     }
+//   };
+
+//   const inputStyle = {
+//     color: "#1b1c1a",
+//     borderBottom: "1px solid #d0c5b5",
+//     fontFamily: "'Inter', sans-serif",
+//   };
+
+//   const handleFocus = (e) => {
+//     e.target.style.borderBottomColor = "#C9A96E";
+//   };
+
+//   const handleBlur = (e) => {
+//     e.target.style.borderBottomColor = "#d0c5b5";
+//   };
+
+
+//   return (
+//     <>
+//       <link
+//         href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap"
+//         rel="stylesheet"
+//       />
+
+//       <div
+//         className="min-h-screen flex flex-col lg:flex-row selection:bg-[#C9A96E]/30"
+//         style={{
+//           backgroundColor: "#fbf9f6",
+//           fontFamily: "'Inter', sans-serif",
+//         }}
+//       >
+//         {/* Left Section */}
+//         <div
+//           className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
+//           style={{ backgroundColor: "#f5f3f0" }}
+//         >
+//           <img
+//             src="/snitch_editorial_warm.png"
+//             alt="Fashion Editorial"
+//             className="absolute inset-0 w-full h-full object-cover object-top"
+//             style={{ filter: "brightness(0.97)" }}
+//           />
+
+//           <div
+//             className="absolute inset-0"
+//             style={{
+//               background:
+//                 "linear-gradient(to top, rgba(27,24,20,0.62) 0%, rgba(27,24,20,0.08) 45%, transparent 100%)",
+//             }}
+//           />
+
+//           <div className="absolute inset-0 p-14 flex flex-col justify-between z-10">
+//             <span
+//               className="text-sm font-medium tracking-[0.35em] uppercase"
+//               style={{
+//                 fontFamily: "'Cormorant Garamond', serif",
+//                 color: "#C9A96E",
+//               }}
+//             >
+//               Snitch.
+//             </span>
+
+//             <div>
+//               <p
+//                 className="text-5xl xl:text-6xl font-light leading-[1.08] text-white mb-5"
+//                 style={{
+//                   fontFamily: "'Cormorant Garamond', serif",
+//                 }}
+//               >
+//                 Define your
+//                 <br />
+//                 <em>aesthetic.</em>
+//               </p>
+
+//               <p
+//                 className="text-sm font-light leading-relaxed max-w-xs"
+//                 style={{ color: "rgba(255,255,255,0.65)" }}
+//               >
+//                 Join the exclusive movement of creators and brands redefining
+//                 the modern fashion landscape.
+//               </p>
+//             </div>
+//           </div>
+//         </div>
+
+//         {/* Right Section */}
+//         <div
+//           className="w-full lg:w-1/2 flex items-center justify-center min-h-screen px-8 sm:px-14 lg:px-20 py-16 overflow-y-auto"
+//           style={{ backgroundColor: "#fbf9f6" }}
+//         >
+//           <div className="w-full max-w-sm">
+
+//             <div className="lg:hidden mb-14">
+//               <span
+//                 className="text-sm tracking-[0.35em] uppercase"
+//                 style={{
+//                   fontFamily: "'Cormorant Garamond', serif",
+//                   color: "#C9A96E",
+//                 }}
+//               >
+//                 Snitch.
+//               </span>
+//             </div>
+
+//             <div className="mb-12">
+//               <p
+//                 className="text-[10px] uppercase tracking-[0.22em] mb-4 font-medium"
+//                 style={{ color: "#C9A96E" }}
+//               >
+//                 Welcome to Snitch
+//               </p>
+
+//               <h1
+//                 className="text-[2.6rem] xl:text-5xl font-light leading-[1.1]"
+//                 style={{
+//                   fontFamily: "'Cormorant Garamond', serif",
+//                   color: "#1b1c1a",
+//                 }}
+//               >
+//                 Elevate Your Style
+//               </h1>
+//             </div>
+
+//             {error && (
+//               <div className="mb-5 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+//                 {error}
+//               </div>
+//             )}
+
+//             <form onSubmit={handleSubmit} className="flex flex-col gap-9">
+//               {/* Full Name */}
+//               <div className="flex flex-col gap-2">
+//                 <label
+//                   htmlFor="reg-fullName"
+//                   className="text-[10px] uppercase tracking-[0.18em] font-medium"
+//                   style={{ color: "#7A6E63" }}
+//                 >
+//                   Full Name
+//                 </label>
+
+//                 <input
+//                   id="reg-fullName"
+//                   type="text"
+//                   name="fullName"
+//                   value={formData.fullName}
+//                   onChange={handleChange}
+//                   onFocus={handleFocus}
+//                   onBlur={handleBlur}
+//                   required
+//                   placeholder="e.g. John Doe"
+//                   className="w-full bg-transparent outline-none py-3 text-sm transition-colors duration-300"
+//                   style={inputStyle}
+//                 />
+//               </div>
+
+//               {/* Contact */}
+//               <div className="flex flex-col gap-2">
+//                 <label
+//                   htmlFor="reg-contact"
+//                   className="text-[10px] uppercase tracking-[0.18em] font-medium"
+//                   style={{ color: "#7A6E63" }}
+//                 >
+//                   Contact Number
+//                 </label>
+
+//                 <input
+//                   id="reg-contact"
+//                   type="tel"
+//                   name="contactNumber"
+//                   value={formData.contactNumber}
+//                   onChange={handleChange}
+//                   onFocus={handleFocus}
+//                   onBlur={handleBlur}
+//                   required
+//                   placeholder="+91 98765 43210"
+//                   className="w-full bg-transparent outline-none py-3 text-sm transition-colors duration-300"
+//                   style={inputStyle}
+//                 />
+//               </div>
+
+//               {/* Email */}
+//               <div className="flex flex-col gap-2">
+//                 <label
+//                   htmlFor="reg-email"
+//                   className="text-[10px] uppercase tracking-[0.18em] font-medium"
+//                   style={{ color: "#7A6E63" }}
+//                 >
+//                   Email Address
+//                 </label>
+
+//                 <input
+//                   id="reg-email"
+//                   type="email"
+//                   name="email"
+//                   value={formData.email}
+//                   onChange={handleChange}
+//                   onFocus={handleFocus}
+//                   onBlur={handleBlur}
+//                   required
+//                   placeholder="hello@example.com"
+//                   className="w-full bg-transparent outline-none py-3 text-sm transition-colors duration-300"
+//                   style={inputStyle}
+//                 />
+//               </div>
+
+//               {/* Password */}
+//               <div className="flex flex-col gap-2">
+//                 <label
+//                   htmlFor="reg-password"
+//                   className="text-[10px] uppercase tracking-[0.18em] font-medium"
+//                   style={{ color: "#7A6E63" }}
+//                 >
+//                   Password
+//                 </label>
+
+//                 <input
+//                   id="reg-password"
+//                   type="password"
+//                   name="password"
+//                   value={formData.password}
+//                   onChange={handleChange}
+//                   onFocus={handleFocus}
+//                   onBlur={handleBlur}
+//                   required
+//                   placeholder="••••••••"
+//                   className="w-full bg-transparent outline-none py-3 text-sm transition-colors duration-300"
+//                   style={inputStyle}
+//                 />
+//               </div>
+
+//               {/* Seller Checkbox */}
+//               <label
+//                 htmlFor="reg-isSeller"
+//                 className="flex items-center gap-4 cursor-pointer"
+//               >
+//                 <div className="relative flex-shrink-0">
+//                   <input
+//                     id="reg-isSeller"
+//                     type="checkbox"
+//                     name="isSeller"
+//                     checked={formData.isSeller}
+//                     onChange={handleChange}
+//                     className="peer sr-only"
+//                   />
+
+//                   <div
+//                     className="w-4 h-4 border flex items-center justify-center transition-all"
+//                     style={{
+//                       borderColor: formData.isSeller
+//                         ? "#C9A96E"
+//                         : "#d0c5b5",
+//                       backgroundColor: formData.isSeller
+//                         ? "#C9A96E"
+//                         : "transparent",
+//                     }}
+//                   >
+//                     {formData.isSeller && (
+//                       <svg
+//                         className="w-2.5 h-2.5"
+//                         viewBox="0 0 12 12"
+//                         fill="none"
+//                       >
+//                         <path
+//                           d="M2 6l3 3 5-5"
+//                           stroke="#fff"
+//                           strokeWidth="1.5"
+//                           strokeLinecap="round"
+//                           strokeLinejoin="round"
+//                         />
+//                       </svg>
+//                     )}
+//                   </div>
+//                 </div>
+
+//                 <span
+//                   className="text-[11px] uppercase tracking-[0.15em]"
+//                   style={{
+//                     color: formData.isSeller ? "#C9A96E" : "#7A6E63",
+//                   }}
+//                 >
+//                   Register as Seller
+//                 </span>
+//               </label>
+
+
+//               <button
+//                 type="submit"
+//                 disabled={loading}
+//                 className="w-full py-4 text-[11px] uppercase tracking-[0.25em] font-medium transition-all duration-300 mt-2 disabled:opacity-60"
+//                 style={{
+//                   backgroundColor: "#1b1c1a",
+//                   color: "#fbf9f6",
+//                 }}
+//               >
+//                 {loading ? "Creating Account..." : "Sign Up"}
+//               </button>
+
+//               <div className="flex items-center gap-4">
+//                 <div
+//                   className="flex-1 h-px"
+//                   style={{ backgroundColor: "#e4e2df" }}
+//                 />
+//                 <span
+//                   className="text-[10px] uppercase tracking-[0.15em]"
+//                   style={{ color: "#B5ADA3" }}
+//                 >
+//                   or
+//                 </span>
+//                 <div
+//                   className="flex-1 h-px"
+//                   style={{ backgroundColor: "#e4e2df" }}
+//                 />
+//               </div>
+
+//               <ContinueWithGoogle />
+//               <p
+//                 className="text-center text-[11px]"
+//                 style={{ color: "#B5ADA3" }}
+//               >
+//                 Already have an account?{" "}
+//                 <span
+//                   onClick={() => navigate("/login")}
+//                   className="cursor-pointer underline underline-offset-4"
+//                   style={{ color: "#7A6E63" }}
+//                 >
+//                   Sign in
+//                 </span>
+//               </p>
+//             </form>
+//           </div>
+//         </div>
+//       </div>
+//     </>
+//   );
+// };
+
+// export default Register;
+
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../hook/useAuth";
 import ContinueWithGoogle from "../components/ContinueWithGoogle";
 
@@ -660,9 +1041,9 @@ export const Register = () => {
     password: "",
     isSeller: false,
   });
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
@@ -687,99 +1068,59 @@ export const Register = () => {
     }
   };
 
-  const inputStyle = {
-    color: "#1b1c1a",
-    borderBottom: "1px solid #d0c5b5",
-    fontFamily: "'Inter', sans-serif",
+  const handleClose = () => {
+    navigate("/");
   };
-
-  const handleFocus = (e) => {
-    e.target.style.borderBottomColor = "#C9A96E";
-  };
-
-  const handleBlur = (e) => {
-    e.target.style.borderBottomColor = "#d0c5b5";
-  };
-
 
   return (
-    <>
-      <link
-        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap"
-        rel="stylesheet"
-      />
+    <AnimatePresence>
+      <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+        {/* Backdrop */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={handleClose}
+          className="fixed inset-0 bg-[#1b1c1a]/80 backdrop-blur-md"
+        />
 
-      <div
-        className="min-h-screen flex flex-col lg:flex-row selection:bg-[#C9A96E]/30"
-        style={{
-          backgroundColor: "#fbf9f6",
-          fontFamily: "'Inter', sans-serif",
-        }}
-      >
-        {/* Left Section */}
-        <div
-          className="hidden lg:flex lg:w-1/2 relative overflow-hidden"
-          style={{ backgroundColor: "#f5f3f0" }}
+        {/* Modal Container */}
+        <motion.div
+          initial={{ scale: 0.95, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          exit={{ scale: 0.95, opacity: 0, y: 20 }}
+          style={{ fontFamily: "'Inter', sans-serif" }}
+          className="relative z-10 w-full max-w-[1000px] bg-[#fbf9f6] border border-[#e4e2df] shadow-2xl overflow-hidden flex flex-col md:flex-row my-auto"
         >
-          <img
-            src="/snitch_editorial_warm.png"
-            alt="Fashion Editorial"
-            className="absolute inset-0 w-full h-full object-cover object-top"
-            style={{ filter: "brightness(0.97)" }}
-          />
-
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "linear-gradient(to top, rgba(27,24,20,0.62) 0%, rgba(27,24,20,0.08) 45%, transparent 100%)",
-            }}
-          />
-
-          <div className="absolute inset-0 p-14 flex flex-col justify-between z-10">
-            <span
-              className="text-sm font-medium tracking-[0.35em] uppercase"
-              style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                color: "#C9A96E",
-              }}
+          {/* Close Button */}
+          <button
+            onClick={handleClose}
+            type="button"
+            className="absolute top-5 right-5 z-30 p-2 text-[#1b1c1a]/60 hover:text-[#1b1c1a] transition-colors"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
             >
-              Snitch.
-            </span>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
 
-            <div>
-              <p
-                className="text-5xl xl:text-6xl font-light leading-[1.08] text-white mb-5"
-                style={{
-                  fontFamily: "'Cormorant Garamond', serif",
-                }}
-              >
-                Define your
-                <br />
-                <em>aesthetic.</em>
-              </p>
+          {/* Left Editorial Visual */}
+          <div className="hidden md:flex md:w-1/2 bg-[#1b1c1a] p-10 flex-col justify-between relative overflow-hidden min-h-[550px]">
+            <img
+              src="/snitch_editorial_warm.png"
+              alt="Editorial Visual"
+              className="absolute inset-0 w-full h-full object-cover grayscale contrast-110 opacity-75"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#1b1c1a] via-[#1b1c1a]/30 to-transparent" />
 
-              <p
-                className="text-sm font-light leading-relaxed max-w-xs"
-                style={{ color: "rgba(255,255,255,0.65)" }}
-              >
-                Join the exclusive movement of creators and brands redefining
-                the modern fashion landscape.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Section */}
-        <div
-          className="w-full lg:w-1/2 flex items-center justify-center min-h-screen px-8 sm:px-14 lg:px-20 py-16 overflow-y-auto"
-          style={{ backgroundColor: "#fbf9f6" }}
-        >
-          <div className="w-full max-w-sm">
-
-            <div className="lg:hidden mb-14">
+            <div className="relative z-10">
               <span
-                className="text-sm tracking-[0.35em] uppercase"
+                className="text-sm font-medium tracking-[0.35em] uppercase"
                 style={{
                   fontFamily: "'Cormorant Garamond', serif",
                   color: "#C9A96E",
@@ -789,235 +1130,204 @@ export const Register = () => {
               </span>
             </div>
 
-            <div className="mb-12">
-              <p
-                className="text-[10px] uppercase tracking-[0.22em] mb-4 font-medium"
-                style={{ color: "#C9A96E" }}
-              >
-                Welcome to Snitch
+            <div className="relative z-10 space-y-3">
+              <p className="text-[10px] uppercase tracking-[0.25em] text-[#C9A96E] font-medium">
+                Member Privileges
               </p>
-
-              <h1
-                className="text-[2.6rem] xl:text-5xl font-light leading-[1.1]"
-                style={{
-                  fontFamily: "'Cormorant Garamond', serif",
-                  color: "#1b1c1a",
-                }}
+              <h3
+                className="text-3xl font-light leading-snug text-[#fbf9f6]"
+                style={{ fontFamily: "'Cormorant Garamond', serif" }}
               >
-                Elevate Your Style
-              </h1>
+                Access curated haute couture and exclusive drops.
+              </h3>
             </div>
+          </div>
 
-            {error && (
-              <div className="mb-5 rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="flex flex-col gap-9">
-              {/* Full Name */}
-              <div className="flex flex-col gap-2">
-                <label
-                  htmlFor="reg-fullName"
-                  className="text-[10px] uppercase tracking-[0.18em] font-medium"
-                  style={{ color: "#7A6E63" }}
-                >
-                  Full Name
-                </label>
-
-                <input
-                  id="reg-fullName"
-                  type="text"
-                  name="fullName"
-                  value={formData.fullName}
-                  onChange={handleChange}
-                  onFocus={handleFocus}
-                  onBlur={handleBlur}
-                  required
-                  placeholder="e.g. John Doe"
-                  className="w-full bg-transparent outline-none py-3 text-sm transition-colors duration-300"
-                  style={inputStyle}
-                />
+          {/* Right Form */}
+          <div className="w-full md:w-1/2 p-8 sm:p-12 flex flex-col justify-between bg-[#fbf9f6]">
+            <div>
+              {/* Header Tab Matching AuthModal */}
+              <div className="flex border-b border-[#e4e2df] mb-8 pb-3">
+                <span className="text-xs uppercase tracking-[0.2em] font-medium border-b-2 border-[#C9A96E] text-[#1b1c1a] pb-3 -mb-3">
+                  Create Account
+                </span>
               </div>
 
-              {/* Contact */}
-              <div className="flex flex-col gap-2">
-                <label
-                  htmlFor="reg-contact"
-                  className="text-[10px] uppercase tracking-[0.18em] font-medium"
-                  style={{ color: "#7A6E63" }}
-                >
-                  Contact Number
-                </label>
+              {error && (
+                <div className="mb-6 p-3 bg-red-50 border border-red-200 text-red-600 text-xs">
+                  {error}
+                </div>
+              )}
 
-                <input
-                  id="reg-contact"
-                  type="tel"
-                  name="contactNumber"
-                  value={formData.contactNumber}
-                  onChange={handleChange}
-                  onFocus={handleFocus}
-                  onBlur={handleBlur}
-                  required
-                  placeholder="+91 98765 43210"
-                  className="w-full bg-transparent outline-none py-3 text-sm transition-colors duration-300"
-                  style={inputStyle}
-                />
-              </div>
-
-              {/* Email */}
-              <div className="flex flex-col gap-2">
-                <label
-                  htmlFor="reg-email"
-                  className="text-[10px] uppercase tracking-[0.18em] font-medium"
-                  style={{ color: "#7A6E63" }}
-                >
-                  Email Address
-                </label>
-
-                <input
-                  id="reg-email"
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  onFocus={handleFocus}
-                  onBlur={handleBlur}
-                  required
-                  placeholder="hello@example.com"
-                  className="w-full bg-transparent outline-none py-3 text-sm transition-colors duration-300"
-                  style={inputStyle}
-                />
-              </div>
-
-              {/* Password */}
-              <div className="flex flex-col gap-2">
-                <label
-                  htmlFor="reg-password"
-                  className="text-[10px] uppercase tracking-[0.18em] font-medium"
-                  style={{ color: "#7A6E63" }}
-                >
-                  Password
-                </label>
-
-                <input
-                  id="reg-password"
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  onFocus={handleFocus}
-                  onBlur={handleBlur}
-                  required
-                  placeholder="••••••••"
-                  className="w-full bg-transparent outline-none py-3 text-sm transition-colors duration-300"
-                  style={inputStyle}
-                />
-              </div>
-
-              {/* Seller Checkbox */}
-              <label
-                htmlFor="reg-isSeller"
-                className="flex items-center gap-4 cursor-pointer"
-              >
-                <div className="relative flex-shrink-0">
-                  <input
-                    id="reg-isSeller"
-                    type="checkbox"
-                    name="isSeller"
-                    checked={formData.isSeller}
-                    onChange={handleChange}
-                    className="peer sr-only"
-                  />
-
-                  <div
-                    className="w-4 h-4 border flex items-center justify-center transition-all"
-                    style={{
-                      borderColor: formData.isSeller
-                        ? "#C9A96E"
-                        : "#d0c5b5",
-                      backgroundColor: formData.isSeller
-                        ? "#C9A96E"
-                        : "transparent",
-                    }}
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Full Name */}
+                <div>
+                  <label
+                    htmlFor="reg-fullName"
+                    className="text-[9px] uppercase tracking-[0.18em] text-[#7A6E63] font-medium block mb-1"
                   >
-                    {formData.isSeller && (
-                      <svg
-                        className="w-2.5 h-2.5"
-                        viewBox="0 0 12 12"
-                        fill="none"
-                      >
-                        <path
-                          d="M2 6l3 3 5-5"
-                          stroke="#fff"
-                          strokeWidth="1.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    )}
-                  </div>
+                    Full Name
+                  </label>
+                  <input
+                    id="reg-fullName"
+                    type="text"
+                    name="fullName"
+                    value={formData.fullName}
+                    onChange={handleChange}
+                    required
+                    placeholder="e.g. John Doe"
+                    className="w-full bg-transparent border-b border-[#d0c5b5] py-2 text-xs text-[#1b1c1a] outline-none focus:border-[#C9A96E] transition-colors"
+                  />
                 </div>
 
-                <span
-                  className="text-[11px] uppercase tracking-[0.15em]"
-                  style={{
-                    color: formData.isSeller ? "#C9A96E" : "#7A6E63",
-                  }}
+                {/* Contact Number */}
+                <div>
+                  <label
+                    htmlFor="reg-contact"
+                    className="text-[9px] uppercase tracking-[0.18em] text-[#7A6E63] font-medium block mb-1"
+                  >
+                    Contact Number
+                  </label>
+                  <input
+                    id="reg-contact"
+                    type="tel"
+                    name="contactNumber"
+                    value={formData.contactNumber}
+                    onChange={handleChange}
+                    required
+                    placeholder="+91 98765 43210"
+                    className="w-full bg-transparent border-b border-[#d0c5b5] py-2 text-xs text-[#1b1c1a] outline-none focus:border-[#C9A96E] transition-colors"
+                  />
+                </div>
+
+                {/* Email Address */}
+                <div>
+                  <label
+                    htmlFor="reg-email"
+                    className="text-[9px] uppercase tracking-[0.18em] text-[#7A6E63] font-medium block mb-1"
+                  >
+                    Email Address
+                  </label>
+                  <input
+                    id="reg-email"
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    placeholder="hello@example.com"
+                    className="w-full bg-transparent border-b border-[#d0c5b5] py-2 text-xs text-[#1b1c1a] outline-none focus:border-[#C9A96E] transition-colors"
+                  />
+                </div>
+
+                {/* Password */}
+                <div>
+                  <label
+                    htmlFor="reg-password"
+                    className="text-[9px] uppercase tracking-[0.18em] text-[#7A6E63] font-medium block mb-1"
+                  >
+                    Password
+                  </label>
+                  <input
+                    id="reg-password"
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    placeholder="••••••••"
+                    className="w-full bg-transparent border-b border-[#d0c5b5] py-2 text-xs text-[#1b1c1a] outline-none focus:border-[#C9A96E] transition-colors"
+                  />
+                </div>
+
+                {/* Original Seller Checkbox */}
+                <div className="pt-2">
+                  <label
+                    htmlFor="reg-isSeller"
+                    className="flex items-center gap-3 cursor-pointer"
+                  >
+                    <div className="relative flex-shrink-0">
+                      <input
+                        id="reg-isSeller"
+                        type="checkbox"
+                        name="isSeller"
+                        checked={formData.isSeller}
+                        onChange={handleChange}
+                        className="peer sr-only"
+                      />
+                      <div
+                        className="w-4 h-4 border flex items-center justify-center transition-all"
+                        style={{
+                          borderColor: formData.isSeller ? "#C9A96E" : "#d0c5b5",
+                          backgroundColor: formData.isSeller ? "#C9A96E" : "transparent",
+                        }}
+                      >
+                        {formData.isSeller && (
+                          <svg
+                            className="w-2.5 h-2.5"
+                            viewBox="0 0 12 12"
+                            fill="none"
+                          >
+                            <path
+                              d="M2 6l3 3 5-5"
+                              stroke="#fff"
+                              strokeWidth="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+
+                    <span
+                      className="text-[10px] uppercase tracking-[0.15em] font-medium"
+                      style={{
+                        color: formData.isSeller ? "#C9A96E" : "#7A6E63",
+                      }}
+                    >
+                      Register as Seller
+                    </span>
+                  </label>
+                </div>
+
+                {/* Submit Button with Hover Effects */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full mt-6 py-3.5 bg-[#1b1c1a] text-[#fbf9f6] text-xs uppercase tracking-[0.25em] font-medium hover:bg-[#C9A96E] hover:text-[#1b1c1a] transition-all duration-300 disabled:opacity-50"
                 >
-                  Register as Seller
-                </span>
-              </label>
+                  {loading ? "Processing..." : "Sign Up"}
+                </button>
+              </form>
+            </div>
 
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-4 text-[11px] uppercase tracking-[0.25em] font-medium transition-all duration-300 mt-2 disabled:opacity-60"
-                style={{
-                  backgroundColor: "#1b1c1a",
-                  color: "#fbf9f6",
-                }}
-              >
-                {loading ? "Creating Account..." : "Sign Up"}
-              </button>
-
+            {/* Footer / Social Options */}
+            <div className="mt-6 space-y-4">
               <div className="flex items-center gap-4">
-                <div
-                  className="flex-1 h-px"
-                  style={{ backgroundColor: "#e4e2df" }}
-                />
-                <span
-                  className="text-[10px] uppercase tracking-[0.15em]"
-                  style={{ color: "#B5ADA3" }}
-                >
+                <div className="flex-1 h-px bg-[#e4e2df]" />
+                <span className="text-[10px] uppercase tracking-[0.15em] text-[#B5ADA3]">
                   or
                 </span>
-                <div
-                  className="flex-1 h-px"
-                  style={{ backgroundColor: "#e4e2df" }}
-                />
+                <div className="flex-1 h-px bg-[#e4e2df]" />
               </div>
 
               <ContinueWithGoogle />
-              <p
-                className="text-center text-[11px]"
-                style={{ color: "#B5ADA3" }}
-              >
+
+              <p className="text-center text-[10px] uppercase tracking-wider text-[#7A6E63]">
                 Already have an account?{" "}
                 <span
                   onClick={() => navigate("/login")}
-                  className="cursor-pointer underline underline-offset-4"
-                  style={{ color: "#7A6E63" }}
+                  className="cursor-pointer text-[#1b1c1a] underline underline-offset-4 hover:text-[#C9A96E] transition-colors"
                 >
                   Sign in
                 </span>
               </p>
-            </form>
+            </div>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </>
+    </AnimatePresence>
   );
 };
 

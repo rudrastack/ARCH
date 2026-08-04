@@ -111,11 +111,6 @@ export default function Home() {
 }
 
 
-
-
-
-
-
 gsap.registerPlugin(ScrollTrigger);
 
 // ============================================================
