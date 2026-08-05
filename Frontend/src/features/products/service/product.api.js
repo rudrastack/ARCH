@@ -34,8 +34,9 @@ export async function getProductById(productId) {
 export async function CreateProductVariants(productId, newProductVariant) {
 
     const formData = new FormData();
-    newProductVariant.images.forEach((image, index) => {
-        formData.append(`images[${index}]`, image);
+
+    newProductVariant.images.forEach((image) => {
+        formData.append("images", image);
     });
 
     formData.append("stock", newProductVariant.stock);

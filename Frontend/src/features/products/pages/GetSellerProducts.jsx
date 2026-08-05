@@ -126,6 +126,12 @@ export default function GetSellerProducts() {
         console.log(productId);
     };
 
+    const IcArrowLeft = () => (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" />
+        </svg>
+    );
+
     return (
         <>
             {/* Google Fonts */}
@@ -179,7 +185,14 @@ export default function GetSellerProducts() {
                     {/* ── HEADER SECTION ── */}
                     <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 border-b border-[#e4e2df] pb-8">
                         <div>
-                            <span className="text-[10px] uppercase tracking-[0.35em] text-[#C9A96E] font-medium block mb-3">
+                            <button
+                                onClick={() => navigate('/')}
+                                style={{ fontFamily: "'Cormorant Garamond', serif", background: 'none', border: 'none', cursor: 'pointer', color: "#7A6E63", display: 'flex', alignItems: 'center', gap: 6, padding: 0, fontSize: 13 }}
+                            >
+                                <IcArrowLeft />
+                                <span style={{ letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: 13, fontWeight: 600 }}>Home</span>
+                            </button>
+                            <span className="text-[10px] uppercase tracking-[0.35em] text-[#C9A96E] font-medium block mb-3 mt-5">
                                 Atelier Dashboard
                             </span>
                             <h1
@@ -560,3 +573,5 @@ export default function GetSellerProducts() {
         </>
     );
 }
+
+
