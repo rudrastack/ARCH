@@ -1054,7 +1054,8 @@ export const Register = () => {
     e.preventDefault();
 
     try {
-      await handleRegister({
+      // Fixed: Passing formData.contactNumber instead of formData.contact
+      const user = await handleRegister({
         email: formData.email,
         password: formData.password,
         fullname: formData.fullName,
@@ -1062,7 +1063,12 @@ export const Register = () => {
         isSeller: formData.isSeller,
       });
 
-      navigate("/");
+      // Role-based navigation matching Login functionality
+      if (user?.role === "seller" || formData.isSeller) {
+        navigate("/seller/get");
+      } else {
+        navigate("/");
+      }
     } catch (err) {
       console.error("Registration failed:", err);
     }
@@ -1074,7 +1080,7 @@ export const Register = () => {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+      <div className="fixed inset-0 z-[1100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto selection:bg-[#C9A96E]/30">
         {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -1112,7 +1118,7 @@ export const Register = () => {
           {/* Left Editorial Visual */}
           <div className="hidden md:flex md:w-1/2 bg-[#1b1c1a] p-10 flex-col justify-between relative overflow-hidden min-h-[550px]">
             <img
-              src="/snitch_editorial_warm.png"
+              src="/arks_hero_editorial.png"
               alt="Editorial Visual"
               className="absolute inset-0 w-full h-full object-cover grayscale contrast-110 opacity-75"
             />
@@ -1126,7 +1132,7 @@ export const Register = () => {
                   color: "#C9A96E",
                 }}
               >
-                Snitch.
+                ARKS.
               </span>
             </div>
 
@@ -1146,7 +1152,7 @@ export const Register = () => {
           {/* Right Form */}
           <div className="w-full md:w-1/2 p-8 sm:p-12 flex flex-col justify-between bg-[#fbf9f6]">
             <div>
-              {/* Header Tab Matching AuthModal */}
+              {/* Header Tab */}
               <div className="flex border-b border-[#e4e2df] mb-8 pb-3">
                 <span className="text-xs uppercase tracking-[0.2em] font-medium border-b-2 border-[#C9A96E] text-[#1b1c1a] pb-3 -mb-3">
                   Create Account
@@ -1240,7 +1246,7 @@ export const Register = () => {
                   />
                 </div>
 
-                {/* Original Seller Checkbox */}
+                {/* Seller Checkbox */}
                 <div className="pt-2">
                   <label
                     htmlFor="reg-isSeller"
@@ -1291,7 +1297,7 @@ export const Register = () => {
                   </label>
                 </div>
 
-                {/* Submit Button with Hover Effects */}
+                {/* Submit Button */}
                 <button
                   type="submit"
                   disabled={loading}
