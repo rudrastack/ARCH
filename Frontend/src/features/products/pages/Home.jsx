@@ -18,7 +18,23 @@ export default function Home() {
     const navigate = useNavigate();
 
     const [products, setProducts] = useState([]);
-    const [navVisible, setNavVisible] = useState(false);
+    // Show intro only once per SPA session. Full reload resets this.
+    const [showIntro, setShowIntro] = useState(() => {
+        try {
+            return !(typeof window !== 'undefined' && window.__ARKS_INTRO_SHOWN);
+        } catch (e) {
+            return true;
+        }
+    });
+
+    // Navbar visible when intro is not shown (SPA navigation back to home)
+    const [navVisible, setNavVisible] = useState(() => {
+        try {
+            return !!(typeof window !== 'undefined' && window.__ARKS_INTRO_SHOWN);
+        } catch (e) {
+            return false;
+        }
+    });
 
     useEffect(() => {
         const loadProducts = async () => {
@@ -32,8 +48,10 @@ export default function Home() {
         loadProducts();
     }, []);
 
-    // Initialize Lenis smooth scroll
+    // Initialize Lenis smooth scroll AFTER intro completes to avoid jank
     useEffect(() => {
+        if (showIntro) return;
+
         const lenis = new Lenis({
             duration: 1.2,
             easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -41,22 +59,26 @@ export default function Home() {
             smoothWheel: true,
         });
 
+        let rafId;
         function raf(time) {
             lenis.raf(time);
-            requestAnimationFrame(raf);
+            rafId = requestAnimationFrame(raf);
         }
-        requestAnimationFrame(raf);
+        rafId = requestAnimationFrame(raf);
 
         lenis.on('scroll', ScrollTrigger.update);
-        gsap.ticker.add((time) => {
+        const tickerCb = (time) => {
             lenis.raf(time * 1000);
-        });
+        };
+        gsap.ticker.add(tickerCb);
         gsap.ticker.lagSmoothing(0);
 
         return () => {
+            cancelAnimationFrame(rafId);
+            gsap.ticker.remove(tickerCb);
             lenis.destroy();
         };
-    }, []);
+    }, [showIntro]);
 
     const handleNavigateAuth = (path) => {
         navigate(path);
@@ -68,7 +90,15 @@ export default function Home() {
             <MouseFollower />
 
             {/* 2. Gate Opening Intro Overlay with Netflix-Style Zooming Logo */}
-            <IntroOverlay onComplete={() => setNavVisible(true)} />
+            {showIntro ? (
+                <IntroOverlay
+                    onComplete={() => {
+                        if (typeof window !== 'undefined') window.__ARKS_INTRO_SHOWN = true;
+                        setNavVisible(true);
+                        setShowIntro(false);
+                    }}
+                />
+            ) : null}
 
             {/* 3. Navigation Bar */}
             <Navbar visible={navVisible} onAuthNavigate={handleNavigateAuth} user={user} />
@@ -132,6 +162,8 @@ function IntroOverlay({ onComplete }) {
                 document.body.style.overflow = '';
                 if (overlayRef.current) {
                     overlayRef.current.style.pointerEvents = 'none';
+                    // hide for next renders without forcing a reflow
+                    overlayRef.current.style.opacity = '0';
                     overlayRef.current.style.display = 'none';
                 }
                 if (onComplete) onComplete();
@@ -196,7 +228,11 @@ function IntroOverlay({ onComplete }) {
             </div>
 
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-20">
-                <div ref={logoWrapperRef} className="text-center" style={{ opacity: 0, transformOrigin: 'center center' }}>
+                <div
+                    ref={logoWrapperRef}
+                    className="text-center"
+                    style={{ opacity: 0, transformOrigin: 'center center', willChange: 'transform, opacity', transform: 'translateZ(0)' }}
+                >
                     <ArksLogo variant="light" size="xl" />
                     <p className="mt-4 text-[10px] uppercase tracking-[0.4em] text-[#C9A96E] font-medium">
                         Quiet Luxury &bull; Haute Couture
