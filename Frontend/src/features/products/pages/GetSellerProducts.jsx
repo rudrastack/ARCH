@@ -123,6 +123,7 @@ export default function GetSellerProducts() {
             [productId]:
                 ((prev[productId] || 0) - 1 + totalImages) % totalImages,
         }));
+        console.log(productId);
     };
 
     return (
@@ -533,11 +534,12 @@ export default function GetSellerProducts() {
                                 <div className="flex gap-4">
                                     <button
                                         onClick={() => {
-                                            setSelectedProduct(null);
+                                            navigate(`/seller/variants/${selectedProduct._id}`);
                                             setNotification({
                                                 type: "info",
                                                 message: "Opening product editor..."
                                             });
+
                                         }}
                                         className="flex-1 py-3 text-center text-xs uppercase tracking-widest font-semibold border border-[#1b1c1a] bg-white text-[#1b1c1a] hover:bg-[#fbf9f6] transition-all rounded-xl"
                                     >
