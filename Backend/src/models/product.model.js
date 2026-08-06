@@ -22,23 +22,23 @@ const ProductSchema = new mongoose.Schema({
     },
     images: [
         {
-        url: {
-            type: String,
-            required: true
+            url: {
+                type: String,
+                required: true
+            }
         }
-    }
-   ],
+    ],
     seller: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "user",
         required: true,
     },
-   variants: [
+    variants: [
         {
             images: [
                 {
                     url: {
-                        type: String,
+                        type: String,   
                         required: true
                     }
                 }
@@ -49,7 +49,7 @@ const ProductSchema = new mongoose.Schema({
             },
             attributes: {
                 type: Map,
-                of: String
+                of: [String]
             },
             price: {
                 amount: {
@@ -66,9 +66,9 @@ const ProductSchema = new mongoose.Schema({
 
     ]
 },
-{
-    timestamps: true
-});
+    {
+        timestamps: true
+    });
 
 const ProductModel = mongoose.model('Product', ProductSchema);
 

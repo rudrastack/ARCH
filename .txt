@@ -157,3 +157,229 @@ Do not include username.
 Use Tailwind CSS only.
 
 Make the code production-ready and split into reusable components.
+
+
+I already have a fully working SellerProductDetails.jsx where sellers create product variants. The variant creation flow is complete and working correctly.
+
+Now I want to implement the exact same variant functionality inside my public ProductDetails.jsx page.
+
+IMPORTANT:
+- Do NOT redesign the UI.
+- Do NOT change spacing, typography, layout, colors, animations, or overall look.
+- Preserve the current ProductDetails page exactly as it is.
+- Only replace the hardcoded Color and Size selectors with dynamic data coming from the product variants.
+
+Current API Response:
+
+product.images
+product.price
+product.variants[]
+
+Each variant has the following structure:
+
+{
+  _id,
+  images: [
+    { url }
+  ],
+  stock,
+  attributes: {
+      Color: "White",
+      Size: "XS, S, M, XL"
+  },
+  price: {
+      amount: 800,
+      currency: "INR"
+  }
+}
+
+Example:
+
+variants = [
+ {
+   attributes:{
+      Color:"White",
+      Size:"S, M, L, XL"
+   },
+   images:[...],
+   stock:10,
+   price:{
+      amount: ,
+      currency:"INR"
+   }
+ },
+ {
+   attributes:{
+      Color:"Black",
+      Size:"L, XL, XXL"
+   },
+   images:[...],
+   stock:10,
+   price:{
+      amount: 800,
+      currency:"INR"
+   }
+ }
+]
+
+Implement the following behavior:
+
+1. Remove the hardcoded COLORS array.
+
+2. Remove the hardcoded SIZES array.
+
+3. Extract all unique Color values from product.variants.
+
+4. Extract all unique Size values from product.variants.
+
+5. Populate the existing Color selector dynamically.
+
+6. Populate the existing Size selector dynamically.
+
+7. When the page loads:
+
+   - Select the first available variant by default.
+   - Automatically select its Color.
+   - Automatically select its Size.
+   - Display that variant's images.
+   - Display that variant's price.
+   - Display that variant's stock.
+
+8. Variant Selection Logic
+
+Whenever user changes Color:
+
+- Find a variant matching:
+    selected Color
+    currently selected Size
+
+If found:
+
+- update selected variant
+- update gallery images
+- update price
+- update stock
+
+If not found:
+
+- automatically select the first available Size for that Color.
+
+Likewise,
+
+Whenever Size changes:
+
+- Find matching variant using:
+    current Color
+    selected Size
+
+If no match exists:
+
+- automatically switch to first available Color for that Size.
+
+9. Image Gallery
+
+Currently ProductDetails always uses:
+
+product.images
+
+Replace this with:
+
+selectedVariant.images
+
+The main image and thumbnail gallery should update immediately whenever the selected variant changes.
+
+10. Price
+
+Instead of always showing:
+
+product.price
+
+show:
+
+selectedVariant.price
+
+If variant price is missing:
+
+fallback to product.price
+
+11. Stock
+
+Display stock from selectedVariant.
+
+If stock == 0:
+
+Show:
+"Out of Stock"
+
+Disable:
+
+- Add To Cart
+- Buy Now
+
+12. Attribute Buttons
+
+Do NOT hardcode attribute names.
+
+Support any future attributes.
+
+For example:
+
+Color
+Size
+Material
+Fit
+Storage
+RAM
+Pattern
+Finish
+
+The UI should automatically render selectors based on whatever attributes exist inside variant.attributes.
+
+However, if only Color and Size exist, keep using the current existing UI.
+
+13. State Management
+
+Create something similar to:
+
+selectedVariant
+
+selectedAttributes
+
+derivedVariants
+
+availableColors
+
+availableSizes
+
+or any clean approach.
+
+Avoid duplicated state.
+
+14. Keep everything else untouched.
+
+Do NOT modify:
+
+- navbar
+- gallery layout
+- tabs
+- footer
+- description
+- seller section
+- typography
+- animations
+
+Only make the ProductDetails page variant-aware.
+also add go to home page button on the top ProductDetails page
+
+15. Reuse logic from SellerProductDetails where appropriate, but do not copy seller-specific UI.
+
+The public page should behave exactly like Shopify product pages where changing Color or Size automatically changes:
+
+- images
+- price
+- stock
+- selected variant
+
+without refreshing the page.
+
+Generate clean production-quality React code.
