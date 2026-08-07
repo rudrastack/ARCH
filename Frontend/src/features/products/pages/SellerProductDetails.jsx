@@ -244,7 +244,7 @@ function VariantFormPanel({ onClose, onSave, saving }) {
                     {/* Attributes */}
                     <div>
                         <label style={labelBase}>Attributes <span style={{ color: c.error }}>*</span></label>
-                        <p style={{ fontSize: 12, color: c.outlineVariant, fontFamily: 'Inter, sans-serif', marginBottom: 14, marginTop: -2 }}>e.g. Color → Red, Size → M</p>
+                        <p style={{ fontSize: 12, color: c.outlineVariant, fontFamily: 'Inter, sans-serif', marginBottom: 14, marginTop: -2 }}>e.g. Color → Red, Size → S, M, L... etc</p>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                             {attrInputs.map((attr, idx) => (
                                 <div key={idx} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
