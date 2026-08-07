@@ -216,7 +216,7 @@ export default function CreateProduct() {
                 className="min-h-screen selection:bg-[#C9A96E]/30 text-[#1b1c1a] px-6 md:px-12 lg:px-20 py-12 transition-colors duration-300"
                 style={{ backgroundColor: "#fbf9f6", fontFamily: "'Inter', sans-serif" }}
             >
-                {/* ── BREADCRUMB / HEADER ── */}
+                {/*  BREADCRUMB / HEADER  */}
                 <div className="max-w-7xl mx-auto mb-16 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-[#e4e2df] pb-6">
                     <div>
                         <span
@@ -246,7 +246,7 @@ export default function CreateProduct() {
                     </div>
                 </div>
 
-                {/* ── NOTIFICATION TOAST ── */}
+                {/*  NOTIFICATION TOAST  */}
                 {notification && (
                     <div className="fixed top-8 right-8 z-50 animate-fade-in-down">
                         <div
@@ -292,7 +292,7 @@ export default function CreateProduct() {
                     </div>
                 )}
 
-                {/* ── TWO-COLUMN LAYOUT FORM ── */}
+                {/*  TWO-COLUMN LAYOUT FORM  */}
                 <form onSubmit={handleSubmit} className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
 
                     {/* LEFT COLUMN: Fields (7 Cols) */}

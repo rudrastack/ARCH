@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useProduct } from "../hook/useProduct";
 
 /* ─── Design tokens (Midnight Atelier – from Stitch output) ─── */
@@ -16,38 +16,20 @@ const t = {
     outlineVariant: "#c5c6cd",
 };
 
-// const COLORS = [
-//     { name: "Midnight Navy", hex: "#000080" },
-//     { name: "Slate Gray", hex: "#708090" },
-//     { name: "Pure White", hex: "#FFFFFF" },
-// ];
-
-// const SIZES = ["S", "M", "L", "XL", "XXL"];
-
-
 export default function ProductDetails() {
+
     const { productId } = useParams();
 
     const [product, setProduct] = useState(null);
-
     const [activeThumb, setActiveThumb] = useState(0);
-
     const [imgOpacity, setImgOpacity] = useState(1);
-
     const [selectedVariant, setSelectedVariant] = useState(null);
-
     const [selectedColor, setSelectedColor] = useState("");
-
     const [selectedSize, setSelectedSize] = useState("");
-
     const [qty, setQty] = useState(1);
-
     const [activeTab, setActiveTab] = useState("story");
-
     const [cartFeedback, setCartFeedback] = useState(false);
-
     const { handleGetProductById } = useProduct();
-
     const variants = product?.variants ?? [];
 
     const availableColors = [

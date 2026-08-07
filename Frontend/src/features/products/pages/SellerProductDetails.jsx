@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useProduct } from '../hook/useProduct';
 
-/* ─── Design Tokens — Variant Manager (Stitch: Warm Minimalist Editorial) ─── */
+/*  Design Tokens — Variant Manager (Stitch: Warm Minimalist Editorial)  */
 const c = {
     bg: '#fbf9f6',
     surface: '#ffffff',
@@ -20,7 +20,7 @@ const c = {
     errorContainer: '#ffdad6',
 };
 
-/* ─── SVG Icons ─── */
+/*  SVG Icons  */
 const IcPlus = () => (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
         <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
@@ -52,7 +52,7 @@ const IcPackage = () => (
     </svg>
 );
 
-/* ─── Shared styles ─── */
+/*  Shared styles  */
 const inputBase = {
     width: '100%',
     background: 'transparent',
@@ -78,7 +78,7 @@ const labelBase = {
     fontFamily: 'Inter, sans-serif',
 };
 
-/* ─── Toast Notification ─── */
+/*  Toast Notification  */
 function Toast({ msg, type, onClose }) {
     useEffect(() => { const t = setTimeout(onClose, 3000); return () => clearTimeout(t); }, []);
     const bg = type === 'error' ? c.errorContainer : c.primaryFixed;
@@ -91,7 +91,7 @@ function Toast({ msg, type, onClose }) {
     );
 }
 
-/* ─── Variant Card ─── */
+/*  Variant Card  */
 function VariantCard({ variant, index, onStockChange }) {
     const [focused, setFocused] = useState(false);
     const thumbSrc = variant.images?.[0]?.url || null;
@@ -159,7 +159,7 @@ function VariantCard({ variant, index, onStockChange }) {
     );
 }
 
-/* ─── New Variant Slide-over Panel ─── */
+/*  New Variant Slide-over Panel  */
 function VariantFormPanel({ onClose, onSave, saving }) {
     const fileInputRef = useRef(null);
     const [attrInputs, setAttrInputs] = useState([{ key: '', value: '' }]);
@@ -377,12 +377,13 @@ function VariantFormPanel({ onClose, onSave, saving }) {
     );
 }
 
-/* ─── Main Page ─── */
+/*  Main Page  */
 export default function SellerProductDetails() {
     const { productId } = useParams();
-    const navigate = useNavigate();
-    const { handleGetProductById, handleCreateProductVariants } = useProduct();
 
+    const navigate = useNavigate();
+
+    const { handleGetProductById, handleCreateProductVariants } = useProduct();
     const [product, setProduct] = useState(null);
     const [localVariants, setLocalVariants] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -391,7 +392,7 @@ export default function SellerProductDetails() {
     const [toast, setToast] = useState(null);
     const [activeThumb, setActiveThumb] = useState(0);
 
-    /* ─── Fetch ─── */
+    /*  Fetch  */
     useEffect(() => {
         async function load() {
             setLoading(true);
@@ -409,7 +410,7 @@ export default function SellerProductDetails() {
         load();
     }, [productId]);
 
-    /* ─── Stock change ─── */
+    /*  Stock change  */
     function handleStockChange(idx, val) {
         setLocalVariants(prev => {
             const updated = [...prev];
@@ -418,7 +419,7 @@ export default function SellerProductDetails() {
         });
     }
 
-    /* ─── Save new variant ─── */
+    /*  Save new variant  */
     async function handleSaveVariant(payload, previewImages) {
         setSaving(true);
         try {
@@ -442,7 +443,7 @@ export default function SellerProductDetails() {
         }
     }
 
-    /* ─── Loading / Error states ─── */
+    /*  Loading / Error states  */
     if (loading) {
         return (
             <div style={{ minHeight: '100vh', background: c.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16 }}>
@@ -473,7 +474,7 @@ export default function SellerProductDetails() {
                 select option { background: ${c.surface}; }
             `}</style>
 
-            {/* ── STICKY HEADER ── */}
+            {/*  STICKY HEADER  */}
             <header style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(251,249,246,0.9)', backdropFilter: 'blur(10px)', borderBottom: `1px solid ${c.outlineVariant}20`, padding: '0 40px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                     <button
@@ -495,7 +496,7 @@ export default function SellerProductDetails() {
 
             <main style={{ maxWidth: 1200, margin: '0 auto', padding: '48px 40px 80px' }}>
 
-                {/* ── BASE PRODUCT PANEL ── */}
+                {/*  BASE PRODUCT PANEL  */}
                 <section style={{ marginBottom: 64 }}>
                     <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: c.primary, marginBottom: 20 }}>Base Product</p>
 
@@ -555,7 +556,7 @@ export default function SellerProductDetails() {
                     </div>
                 </section>
 
-                {/* ── VARIANTS & INVENTORY ── */}
+                {/*  VARIANTS & INVENTORY  */}
                 <section>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 28 }}>
                         <div>
@@ -613,7 +614,7 @@ export default function SellerProductDetails() {
                 </section>
             </main>
 
-            {/* ── SLIDE-OVER PANEL ── */}
+            {/*  SLIDE-OVER PANEL  */}
             {showPanel && (
                 <VariantFormPanel
                     onClose={() => setShowPanel(false)}
@@ -622,7 +623,7 @@ export default function SellerProductDetails() {
                 />
             )}
 
-            {/* ── TOAST ── */}
+            {/*  TOAST  */}
             {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
         </div>
     );

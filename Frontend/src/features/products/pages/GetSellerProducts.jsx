@@ -453,7 +453,7 @@ export default function GetSellerProducts() {
                 </div>
             </div>
 
-            {/* ── HIGH-END EDITORIAL VIEW MODAL ── */}
+            {/* HIGH-END EDITORIAL VIEW MODAL */}
             {selectedProduct && (
                 <div
                     className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-y-auto animate-fade-in"
