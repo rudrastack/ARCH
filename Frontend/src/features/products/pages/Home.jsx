@@ -18,6 +18,7 @@ export default function Home() {
     const navigate = useNavigate();
 
     const [products, setProducts] = useState([]);
+
     // Show intro only once per SPA session. Full reload resets this.
     const [showIntro, setShowIntro] = useState(() => {
         try {
@@ -439,10 +440,14 @@ function Navbar({ visible, onAuthNavigate, user }) {
                     )}
 
                     <MagneticButton
-                        onClick={() => onAuthNavigate('/register')}
+                        onClick={() =>
+                            onAuthNavigate(
+                                user?.role === "seller" ? "/seller/get" : "/register"
+                            )
+                        }
                         className="px-5 py-2.5 border border-[#1b1c1a] text-[10px] uppercase tracking-[0.22em] text-[#1b1c1a] font-medium hover:bg-[#1b1c1a] hover:text-[#fbf9f6] transition-all duration-300"
                     >
-                        Join Club
+                        {user?.role === "seller" ? "Seller Dashboard" : "Join Club"}
                     </MagneticButton>
 
                     <button
@@ -685,7 +690,7 @@ function FeaturedCollection({ products, onAuthNavigate }) {
                         <div className="relative aspect-[3/4] overflow-hidden bg-[#f5f3f0] mb-4">
                             {product.images && product.images[0] ? (
                                 <img
-                                    src={product.images[0].url || product.images[0]}
+                                    src={product.variants && product.variants[0] ? product.variants[0].images[0].url : product.images[0]}
                                     alt={product.title}
                                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                                 />
