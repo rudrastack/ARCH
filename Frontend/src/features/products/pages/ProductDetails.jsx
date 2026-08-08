@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useProduct } from "../hook/useProduct";
+import { useCart } from "../../cart/hook/useCart";
+import { addItems } from "../../cart/state/cart.slice";
 
-/* ─── Design tokens (Midnight Atelier – from Stitch output) ─── */
+// design tokens
 const t = {
     primary: "#0a192f",
     primaryText: "#ffffff",
@@ -19,6 +21,8 @@ const t = {
 export default function ProductDetails() {
 
     const { productId } = useParams();
+    const { handleGetProductById } = useProduct();
+    const { handleAddToCart } = useCart();
 
     const [product, setProduct] = useState(null);
     const [activeThumb, setActiveThumb] = useState(0);
@@ -29,7 +33,7 @@ export default function ProductDetails() {
     const [qty, setQty] = useState(1);
     const [activeTab, setActiveTab] = useState("story");
     const [cartFeedback, setCartFeedback] = useState(false);
-    const { handleGetProductById } = useProduct();
+
     const variants = product?.variants ?? [];
 
     const availableColors = [
@@ -128,9 +132,6 @@ export default function ProductDetails() {
         async function fetchProduct() {
 
             const data = await handleGetProductById(productId);
-            console.log(data.variants);
-            console.log(data.variants[0].attributes);
-            console.log(data.variants[0].attributes.Size);
             setProduct(data);
 
             if (data?.variants?.length) {
@@ -170,11 +171,6 @@ export default function ProductDetails() {
         setTimeout(() => { setActiveThumb(index); setImgOpacity(1); }, 280);
     }
 
-    function handleAddToCart() {
-        setCartFeedback(true);
-        setTimeout(() => setCartFeedback(false), 2000);
-    }
-
     if (!product) {
         return (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: t.surface, gap: 16, fontFamily: "'Hanken Grotesk',sans-serif" }}>
@@ -204,6 +200,8 @@ export default function ProductDetails() {
         selectedVariant?.stock ?? 0;
 
     const outOfStock = stock <= 0;
+
+
     return (
         <div style={{ background: t.surface, color: t.onSurface, fontFamily: "'Hanken Grotesk',sans-serif", minHeight: "100vh" }}>
             <style>{`
@@ -446,13 +444,14 @@ export default function ProductDetails() {
 
                         {/* CTA Buttons */}
                         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                            <button className="arks-add-btn" disabled={outOfStock} onClick={handleAddToCart}
+                            <button className="arks-add-btn" disabled={outOfStock} onClick={() => handleAddToCart({ productId: product?._id, variantId: selectedVariant?._id, quantity: qty })}
                                 style={{ opacity: outOfStock ? 0.5 : 1, cursor: outOfStock ? "not-allowed" : "pointer", width: "100%", padding: "18px 0", background: cartFeedback ? "#2d5a27" : t.primary, color: t.primaryText, border: "none", fontFamily: "'Hanken Grotesk',sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", transition: "background .3s" }}>
                                 {outOfStock
                                     ? "Out of Stock"
                                     : cartFeedback
                                         ? "✓ Added to Cart"
                                         : "Add to Cart"}
+
                             </button>
                             <button className="arks-buy-btn" disabled={outOfStock}
                                 style={{ opacity: outOfStock ? 0.5 : 1, cursor: outOfStock ? "not-allowed" : "pointer", width: "100%", padding: "18px 0", background: "transparent", color: t.primary, border: `1px solid ${t.primary}`, fontFamily: "'Hanken Grotesk',sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", transition: "background .3s" }}>
