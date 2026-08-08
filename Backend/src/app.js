@@ -2,6 +2,7 @@ import express from 'express';
 import morgan from 'morgan';
 import authRoutes from './routes/auth.route.js';
 import productRoutes from './routes/product.route.js';
+import cartRoutes from './routes/cart.route.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import passport from 'passport';
@@ -33,6 +34,7 @@ passport.use(new GoogleStrategy({
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/cart', cartRoutes);
 
 
 export default app;
