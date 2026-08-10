@@ -90,6 +90,7 @@ export default function GetSellerProducts() {
     // Edit item placeholder
     const handleEditProduct = (productId, e) => {
         e.stopPropagation();
+        navigate(`/seller/variants/${productId}`);
         setNotification({
             type: "info",
             message: "Edit mode is simulated. Catalog updates are ready to bind with ImageKit/API."
