@@ -72,7 +72,7 @@ export const addToCart = async (req, res) => {
 export const getCart = async (req, res) => {
     const user = req.user;
 
-    let cart = await cartModel.findOne({ user: user.req._id }).populate("items.product");
+    let cart = await cartModel.findOne({ user: user._id }).populate("items.product");
     if (!cart) {
         return res.status(404).json({
             message: "Cart not found",
@@ -83,6 +83,6 @@ export const getCart = async (req, res) => {
     res.status(200).json({
         message: "Cart fetched successfully",
         success: true,
-        cart
+        cart    
     });
 }
