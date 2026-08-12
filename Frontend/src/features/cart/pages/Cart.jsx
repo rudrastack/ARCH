@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useCart } from '../hook/useCart';
 import { useNavigate, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-// Google Stitch & ARKS Design Tokens
+
 const t = {
     primary: "#0a192f",
     primaryText: "#ffffff",
@@ -17,6 +17,7 @@ const t = {
     accentGold: "#C9A96E",
     accentRed: "#b71c1c",
 };
+
 export default function Cart() {
     const {
         cartItems,
@@ -33,45 +34,6 @@ export default function Cart() {
     useEffect(() => {
         handleGetCart();
     }, []);
-
-    // const formatPrice = (amount, cur = currency) => {
-    //     return new Intl.NumberFormat("en-IN", {
-    //         style: "currency",
-    //         currency: cur || "INR",
-    //         maximumFractionDigits: 0
-    //     }).format(amount || 0);
-    // };
-    // const getItemImage = (item) => {
-    //     if (item.variants?.images?.[0]?.url) return item.variants.images[0].url;
-    //     if (typeof item.variants?.images?.[0] === 'string') return item.variants.images[0];
-    //     if (item.product?.images?.[0]?.url) return item.product.images[0].url;
-    //     if (typeof item.product?.images?.[0] === 'string') return item.product.images[0];
-    //     return "/arks_hero_editorial.png";
-    // };
-    // const getItemTitle = (item) => {
-    //     if (typeof item.product === 'object' && item.product?.title) return item.product.title;
-    //     if (typeof item.product === 'object' && item.product?.name) return item.product.name;
-    //     if (typeof item.variants === 'object' && item.variants?.title) return item.variants.title;
-    //     return "ARKS Luxury Garment";
-    // };
-    // const getItemVariantDetails = (item) => {
-    //     if (typeof item.variants !== 'object' || !item.variants) return null;
-
-    //     const color = item.variants.attributes?.Color?.[0] || item.variants.color;
-    //     const size = item.variants.attributes?.Size?.[0] || item.variants.size;
-
-    //     const details = [];
-    //     if (color) details.push(`Color: ${color}`);
-    //     if (size) details.push(`Size: ${size}`);
-
-    //     return details.length > 0 ? details.join("  •  ") : "Standard Edition";
-    // };
-    // const getItemUnitPrice = (item) => {
-    //     return item.price?.amount ?? item.variants?.price?.amount ?? item.product?.price?.amount ?? 0;
-    // };
-    // const getItemCurrency = (item) => {
-    //     return item.price?.currency || item.variants?.price?.currency || item.product?.price?.currency || currency || "INR";
-    // };
 
     const getSelectedVariant = (item) => {
         return item.product?.variants?.find(
@@ -125,6 +87,7 @@ export default function Cart() {
 
     const shippingCost = cartSubtotal > 2000 ? 0 : 250;
     const estimatedTotal = cartSubtotal + (cartItems?.length > 0 ? shippingCost : 0);
+
     return (
         <div style={{ background: t.surface, color: t.onSurface, fontFamily: "'Hanken Grotesk', sans-serif", minHeight: "100vh" }}>
             <style>{`
