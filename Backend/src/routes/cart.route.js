@@ -11,6 +11,12 @@ const router = express.Router();
  * @access Private
  */
 router.post("/add/:productId/:variantId", authenticateUser, validateAddToCart, addToCart);
+
+/**
+ * @route GET /api/cart
+ * @description Get the cart
+ * @access Private
+ */
 router.get("/", authenticateUser, getCart);
 
 export default router;

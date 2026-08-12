@@ -22,7 +22,7 @@ export const routes = createBrowserRouter([
 
     {
         path: "/cart",
-        element: <Protected> <Cart /> </Protected>
+        element: <Cart />
     },
     {
         path: "/register",

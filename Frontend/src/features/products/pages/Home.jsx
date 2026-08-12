@@ -519,7 +519,7 @@ function HeroSection() {
                     className="absolute inset-0 w-full h-full object-cover object-center filter contrast-[1.05] brightness-[0.95]"
                 >
                     <source
-                        src="https://assets.mixkit.co/videos/preview/mixkit-fashion-model-walking-on-a-catwalk-41484-large.mp4"
+                        src="hero/Video 1 edit.mp4"
                         type="video/mp4"
                     />
                 </video>

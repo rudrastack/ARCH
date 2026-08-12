@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useProduct } from "../hook/useProduct";
-import { useCart } from "../../cart/hook/useCart";
-import { addItems } from "../../cart/state/cart.slice";
+import { useCart } from "../../../features/cart/hook/useCart";
+import { useSelector } from "react-redux";
 
 // design tokens
 const t = {
@@ -21,8 +21,12 @@ const t = {
 export default function ProductDetails() {
 
     const { productId } = useParams();
+    const navigate = useNavigate();
     const { handleGetProductById } = useProduct();
-    const { handleAddToCart } = useCart();
+    const { handleAddToCart, handleGetCart } = useCart();
+    const user = useSelector(state => state.auth.user)
+    const cartItems = useSelector(state => state.cart?.items)
+
 
     const [product, setProduct] = useState(null);
     const [activeThumb, setActiveThumb] = useState(0);
@@ -109,8 +113,7 @@ export default function ProductDetails() {
                 const sizes = (v.attributes?.Size?.[0] || "").split(",").map(s => s.trim());
 
                 return (
-                    v.attributes?.Color?.[0] === color &&
-                    sizes.includes(size)
+                    v.attributes?.Color?.[0] === selectedColor && sizes.includes(size)
                 );
 
             });
@@ -164,6 +167,10 @@ export default function ProductDetails() {
         setQty(1);
 
     }, [selectedVariant]);
+
+    useEffect(() => {
+        handleGetCart();
+    }, []);
 
     function handleThumbClick(index) {
         if (index === activeThumb) return;
@@ -230,8 +237,43 @@ export default function ProductDetails() {
                     ))}
                 </div>
                 <div style={{ display: "flex", gap: 20 }}>
-                    <button style={{ background: "none", border: "none", cursor: "pointer", color: t.primary, fontSize: 22, display: "flex" }} title="Cart">
-                        <span className="material-symbols-outlined" style={{ fontSize: 22 }}>shopping_bag</span>
+                    <button
+                        onClick={() => navigate({
+                            pathname: "/cart",
+                            state: { productId: productId, variantId: selectedVariant._id }
+                        })}
+                        style={{
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            color: t.primary,
+                            fontSize: 22,
+                            display: "flex",
+                            position: "relative"
+                        }}
+                        title="Cart"
+                    >
+                        <span
+                            className="material-symbols-outlined"
+                            style={{ fontSize: 22 }}
+                        >
+                            shopping_bag
+                        </span>
+
+                        {cartItems && (
+                            <span
+                                style={{
+                                    position: "absolute",
+                                    top: -4,
+                                    right: -5,
+                                    width: 8,
+                                    height: 8,
+                                    borderRadius: "50%",
+                                    background: "#e53935",
+                                    border: "2px solid white"
+                                }}
+                            />
+                        )}
                     </button>
                     <button style={{ background: "none", border: "none", cursor: "pointer", color: t.primary, fontSize: 22, display: "flex" }} title="Account">
                         <span className="material-symbols-outlined" style={{ fontSize: 22 }}>person</span>
