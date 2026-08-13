@@ -40,6 +40,25 @@ export default function ProductDetails() {
 
     const variants = product?.variants ?? [];
 
+    const handleAdd = async () => {
+        try {
+            await handleAddToCart({
+                productId: product?._id,
+                variantId: selectedVariant?._id,
+                quantity: qty
+            });
+
+            setCartFeedback(true);
+
+            setTimeout(() => {
+                setCartFeedback(false);
+            }, 2000);
+
+        } catch (error) {
+            console.error("Add to cart failed:", error);
+        }
+    };
+
     const availableColors = [
         ...new Set(
             variants
@@ -486,14 +505,32 @@ export default function ProductDetails() {
 
                         {/* CTA Buttons */}
                         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                            <button className="arks-add-btn" disabled={outOfStock} onClick={() => handleAddToCart({ productId: product?._id, variantId: selectedVariant?._id, quantity: qty })}
-                                style={{ opacity: outOfStock ? 0.5 : 1, cursor: outOfStock ? "not-allowed" : "pointer", width: "100%", padding: "18px 0", background: cartFeedback ? "#2d5a27" : t.primary, color: t.primaryText, border: "none", fontFamily: "'Hanken Grotesk',sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", transition: "background .3s" }}>
+                            <button
+                                className="arks-add-btn"
+                                disabled={outOfStock}
+                                onClick={handleAdd}
+                                style={{
+                                    opacity: outOfStock ? 0.5 : 1,
+                                    cursor: outOfStock ? "not-allowed" : "pointer",
+                                    width: "100%",
+                                    padding: "18px 0",
+                                    background: cartFeedback ? "#2d5a27" : t.primary,
+                                    color: t.primaryText,
+                                    border: "none",
+                                    fontFamily: "'Hanken Grotesk', sans-serif",
+                                    fontSize: 13,
+                                    fontWeight: 600,
+                                    letterSpacing: "0.15em",
+                                    textTransform: "uppercase",
+                                    transition: "background .3s"
+                                }}
+                            >
                                 {outOfStock
                                     ? "Out of Stock"
                                     : cartFeedback
                                         ? "✓ Added to Cart"
-                                        : "Add to Cart"}
-
+                                        : "Add to Cart"
+                                }
                             </button>
                             <button className="arks-buy-btn" disabled={outOfStock}
                                 style={{ opacity: outOfStock ? 0.5 : 1, cursor: outOfStock ? "not-allowed" : "pointer", width: "100%", padding: "18px 0", background: "transparent", color: t.primary, border: `1px solid ${t.primary}`, fontFamily: "'Hanken Grotesk',sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", transition: "background .3s" }}>

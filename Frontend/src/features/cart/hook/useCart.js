@@ -10,8 +10,8 @@ export const useCart = () => {
         return total + (item.price?.amount || 0) * (item.quantity || 0);
     }, 0);
 
-    async function handleAddToCart({ productId, variantId }) {
-        const data = await addToCart({ productId, variantId });
+    async function handleAddToCart({ productId, variantId, quantity = 1 }) {
+        const data = await addToCart({ productId, variantId, quantity });
         await handleGetCart();
         return data;
     }

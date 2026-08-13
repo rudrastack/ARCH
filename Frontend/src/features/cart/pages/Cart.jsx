@@ -261,7 +261,7 @@ export default function Cart() {
                                         <div style={{ display: "flex", justifyContent: "space-between" }}>
                                             <span style={{ color: t.onSurfaceVariant }}>Express Shipping</span>
                                             <span style={{ fontWeight: 600, color: shippingCost === 0 ? "#2e7d32" : t.onSurface }}>
-                                                {shippingCost === 0 ? "Complimentary" : currency + shippingCost}
+                                                {shippingCost === 0 ? "Complimentary" : shippingCost + " " + "Rs"}
                                             </span>
                                         </div>
                                         <div style={{ display: "flex", justifyContent: "space-between" }}>
