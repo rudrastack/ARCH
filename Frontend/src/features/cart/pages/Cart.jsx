@@ -17,15 +17,17 @@ const t = {
     accentGold: "#C9A96E",
     accentRed: "#b71c1c",
 };
-
+// handleUpdateQuantity,
+// handleRemoveItem
 export default function Cart() {
     const {
         cartItems,
         cartSubtotal,
-        currency,
         handleGetCart,
-        handleUpdateQuantity,
-        handleRemoveItem
+        handleRemoveCartItem,
+        handleIncreaseCartItem,
+        handleDecreaseCartItem,
+        handleAddToCart,
     } = useCart();
 
     const user = useSelector(state => state.auth.user);
@@ -173,6 +175,7 @@ export default function Cart() {
                                     const variantText = getItemVariantDetails(item);
                                     const prodId = typeof item.product === 'object' ? item.product?._id : item.product;
                                     const varId = typeof item.variant === 'object' ? item.variant?._id : item.variant;
+
                                     return (
                                         <div key={item._id || `${prodId}-${varId}-${index}`} style={{ display: "flex", gap: 20, padding: 24, background: "#ffffff", border: `1px solid ${t.outlineVariant}`, borderRadius: 4, transition: "box-shadow 0.2s" }}>
 
@@ -213,9 +216,9 @@ export default function Cart() {
                                                             className="arks-qty-btn"
                                                             onClick={() => {
                                                                 if (item.quantity > 1) {
-                                                                    handleUpdateQuantity({ productId: prodId, variantId: varId, itemId: item._id, quantity: item.quantity - 1 });
+                                                                    handleDecreaseCartItem({ productId: prodId, variantId: varId });
                                                                 } else {
-                                                                    handleRemoveItem({ productId: prodId, variantId: varId, itemId: item._id });
+                                                                    handleRemoveCartItem({ productId: prodId, variantId: varId });
                                                                 }
                                                             }}
                                                             style={{ width: 32, height: 32, background: "none", border: "none", cursor: "pointer", fontSize: 16, color: t.onSurface, transition: "background 0.2s" }}
@@ -227,7 +230,7 @@ export default function Cart() {
                                                         </span>
                                                         <button
                                                             className="arks-qty-btn"
-                                                            onClick={() => handleUpdateQuantity({ productId: prodId, variantId: varId, itemId: item._id, quantity: item.quantity + 1 })}
+                                                            onClick={() => handleIncreaseCartItem({ productId: prodId, variantId: varId })}
                                                             style={{ width: 32, height: 32, background: "none", border: "none", cursor: "pointer", fontSize: 16, color: t.onSurface, transition: "background 0.2s" }}
                                                         >
                                                             +
@@ -236,7 +239,7 @@ export default function Cart() {
                                                     {/* Remove Button */}
                                                     <button
                                                         className="arks-remove-btn"
-                                                        onClick={() => handleRemoveItem({ productId: prodId, variantId: varId, itemId: item._id })}
+                                                        onClick={() => handleRemoveCartItem({ productId: prodId, variantId: varId })}
                                                         style={{ background: "none", border: `1px solid ${t.outlineVariant}`, padding: "6px 12px", borderRadius: 2, cursor: "pointer", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.1em", color: t.onSurfaceVariant, transition: "all 0.2s" }}
                                                     >
                                                         Remove
@@ -256,7 +259,7 @@ export default function Cart() {
                                     <div style={{ display: "flex", flexDirection: "column", gap: 16, fontSize: 14 }}>
                                         <div style={{ display: "flex", justifyContent: "space-between" }}>
                                             <span style={{ color: t.onSurfaceVariant }}>Bag Subtotal</span>
-                                            <span style={{ fontWeight: 600, color: t.onSurface }}>{currency} {cartSubtotal}</span>
+                                            <span style={{ fontWeight: 600, color: t.onSurface }}>{ } {cartSubtotal}</span>
                                         </div>
                                         <div style={{ display: "flex", justifyContent: "space-between" }}>
                                             <span style={{ color: t.onSurfaceVariant }}>Express Shipping</span>
