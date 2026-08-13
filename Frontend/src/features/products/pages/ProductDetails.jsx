@@ -27,7 +27,6 @@ export default function ProductDetails() {
     const user = useSelector(state => state.auth.user)
     const cartItems = useSelector(state => state.cart?.items)
 
-
     const [product, setProduct] = useState(null);
     const [activeThumb, setActiveThumb] = useState(0);
     const [imgOpacity, setImgOpacity] = useState(1);
@@ -206,27 +205,16 @@ export default function ProductDetails() {
             </div>
         );
     }
-    const images =
-        selectedVariant?.images?.length
-            ? selectedVariant.images
-            : product.images || [];
-
-    const currentImage =
-        images[Math.min(activeThumb, images.length - 1)]?.url || "";;
-
-    const currentPrice =
-        selectedVariant?.price ?? product.price;
-
+    const images = selectedVariant?.images?.length ? selectedVariant.images : product.images || [];
+    const currentImage = images[Math.min(activeThumb, images.length - 1)]?.url || "";
+    const currentPrice = selectedVariant?.price ?? product.price;
     const formattedPrice = new Intl.NumberFormat("en-IN", {
         style: "currency",
         currency: currentPrice?.currency || "INR",
     }).format(currentPrice?.amount || 0);
 
-    const stock =
-        selectedVariant?.stock ?? 0;
-
+    const stock = selectedVariant?.stock ?? 0;
     const outOfStock = stock <= 0;
-
 
     return (
         <div style={{ background: t.surface, color: t.onSurface, fontFamily: "'Hanken Grotesk',sans-serif", minHeight: "100vh" }}>

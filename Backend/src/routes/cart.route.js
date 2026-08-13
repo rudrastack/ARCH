@@ -1,7 +1,7 @@
 import express from "express";
-import { addToCart, getCart, removeFromCart, increaseCartItemQuantity } from "../controllers/cart.controller.js";
+import { addToCart, getCart, removeFromCart, increaseCartItemQuantity, decreaseCartItemQuantity } from "../controllers/cart.controller.js";
 import { authenticateUser } from "../middleware/auth.middleware.js";
-import { validateAddToCart } from "../validation/cart.validator.js";
+import { validateAddToCart, validateIncrementCartItemQuantity, validateDecrementCartItemQuantity } from "../validation/cart.validator.js";
 
 
 const router = express.Router();
@@ -29,6 +29,12 @@ router.delete("/remove/:productId/:variantId", authenticateUser, removeFromCart)
  * @description Increase the quantity of an item in the cart
  * @access Private
  */
-router.patch("/increase/:productId/:variantId", authenticateUser, increaseCartItemQuantity);
+router.patch("/increase/:productId/:variantId", authenticateUser, validateIncrementCartItemQuantity, increaseCartItemQuantity);
+
+/** * @route PATCH /api/cart/decrease/:productId/:variantId
+ * @description Decrease the quantity of an item in the cart
+ * @access Private
+ */
+router.patch("/decrease/:productId/:variantId", authenticateUser, validateDecrementCartItemQuantity, decreaseCartItemQuantity);
 
 export default router;

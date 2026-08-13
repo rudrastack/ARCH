@@ -54,7 +54,7 @@ export async function GetAllProducts(req, res) {
     });
 }
 
-export async function  GetProductDetails(req, res) {
+export async function GetProductDetails(req, res) {
     const { id } = req.params;
     const product = await ProductModel.findById(id);
     res.status(200).json({
@@ -115,3 +115,4 @@ export async function createProductVariant(req, res) {
     })
 
 }
+
