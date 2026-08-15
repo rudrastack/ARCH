@@ -37,10 +37,12 @@ export default function Cart() {
         handleGetCart();
     }, []);
 
+
     const getSelectedVariant = (item) => {
-        return item.product?.variants?.find(
+        return item?.product?.variants?.find(
             v => v._id === item.variant
         );
+
     };
 
     const getItemImage = (item) => {
@@ -63,11 +65,11 @@ export default function Cart() {
 
     const getItemVariantDetails = (item) => {
         const variant = getSelectedVariant(item);
-
         if (!variant) return "Standard Edition";
-
         const color = variant.attributes?.Color?.[0];
         const size = variant.attributes?.Size?.[0];
+
+
 
         const details = [];
 
@@ -175,6 +177,7 @@ export default function Cart() {
                                     const variantText = getItemVariantDetails(item);
                                     const prodId = typeof item.product === 'object' ? item.product?._id : item.product;
                                     const varId = typeof item.variant === 'object' ? item.variant?._id : item.variant;
+                                    const variantPrice = getSelectedVariant(item).price?.amount;
 
                                     return (
                                         <div key={item._id || `${prodId}-${varId}-${index}`} style={{ display: "flex", gap: 20, padding: 24, background: "#ffffff", border: `1px solid ${t.outlineVariant}`, borderRadius: 4, transition: "box-shadow 0.2s" }}>
@@ -207,6 +210,17 @@ export default function Cart() {
                                                     <p style={{ fontSize: 12, color: t.onSurfaceVariant, marginTop: 4 }}>
                                                         Unit Price: <span style={{ fontWeight: 500, color: t.onSurface }}>{getItemUnitPrice(item)}</span>
                                                     </p>
+                                                    {
+                                                        unitPrice !== variantPrice && (
+                                                            <>
+                                                                {unitPrice > variantPrice
+                                                                    ? <p className="text-[10px] uppercase tracking-[0.15em] mb-4 mt-3 text-green-800 font-bold " > you will get this at {variantPrice} {itemCur} save {Math.abs(variantPrice - unitPrice)}.🎉  </p>
+                                                                    : <p className="text-[10px] uppercase tracking-[0.15em] mb-4 mt-3 text-red-600 font-bold" > Warning this product will cost you {Math.abs(variantPrice - unitPrice)} more.  </p>
+                                                                }
+                                                            </>
+                                                        )
+                                                    }
+
                                                 </div>
                                                 {/* Bottom Row: Quantity controls & Remove */}
                                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 16 }}>

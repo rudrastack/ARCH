@@ -9,6 +9,24 @@ import { useNavigate } from 'react-router-dom';
 
 // Register GSAP Plugin
 gsap.registerPlugin(ScrollTrigger);
+let isSpaNavigated = false;
+
+function checkShouldShowIntro() {
+    if (typeof window === 'undefined') return false;
+    try {
+        const navEntries = performance.getEntriesByType?.('navigation');
+        const isReload = navEntries && navEntries.length > 0
+            ? navEntries[0].type === 'reload'
+            : (performance.navigation && performance.navigation.type === 1);
+        const hasSeenIntro = sessionStorage.getItem('arks_intro_seen');
+        if (isReload || (!hasSeenIntro && !isSpaNavigated)) {
+            return true;
+        }
+        return false;
+    } catch (e) {
+        return false;
+    }
+}
 
 // 1. MAIN HOME PAGE ORCHESTRATION
 export default function Home() {
@@ -20,22 +38,20 @@ export default function Home() {
     const [products, setProducts] = useState([]);
 
     // Show intro only once per SPA session. Full reload resets this.
-    const [showIntro, setShowIntro] = useState(() => {
-        try {
-            return !(typeof window !== 'undefined' && window.__ARKS_INTRO_SHOWN);
-        } catch (e) {
-            return true;
-        }
-    });
+    const [showIntro, setShowIntro] = useState(checkShouldShowIntro);
+
 
     // Navbar visible when intro is not shown (SPA navigation back to home)
-    const [navVisible, setNavVisible] = useState(() => {
+    const [navVisible, setNavVisible] = useState(() => !checkShouldShowIntro());
+
+    const handleIntroComplete = useCallback(() => {
         try {
-            return !!(typeof window !== 'undefined' && window.__ARKS_INTRO_SHOWN);
-        } catch (e) {
-            return false;
-        }
-    });
+            sessionStorage.setItem('arks_intro_seen', 'true');
+            isSpaNavigated = true;
+        } catch (e) { }
+        setNavVisible(true);
+        setShowIntro(false);
+    }, []);
 
     useEffect(() => {
         const loadProducts = async () => {
@@ -81,9 +97,9 @@ export default function Home() {
         };
     }, [showIntro]);
 
-    const handleNavigateAuth = (path) => {
+    const handleNavigateAuth = useCallback((path) => {
         navigate(path);
-    };
+    }, [navigate]);
 
     return (
         <div className="arks-landing bg-[#fbf9f6] text-[#1b1c1a] min-h-screen selection:bg-[#C9A96E]/30 select-none">
@@ -93,11 +109,8 @@ export default function Home() {
             {/* 2. Gate Opening Intro Overlay with Netflix-Style Zooming Logo */}
             {showIntro ? (
                 <IntroOverlay
-                    onComplete={() => {
-                        if (typeof window !== 'undefined') window.__ARKS_INTRO_SHOWN = true;
-                        setNavVisible(true);
-                        setShowIntro(false);
-                    }}
+                    onComplete={handleIntroComplete}
+
                 />
             ) : null}
 
@@ -149,7 +162,7 @@ function ArksLogo({ variant = 'dark', className = '', size = 'md' }) {
 }
 
 // 2. INTRO OVERLAY (Netflix-Style Logo Zoom + Gate Opening)
-function IntroOverlay({ onComplete }) {
+const IntroOverlay = React.memo(function IntroOverlay({ onComplete }) {
     const overlayRef = useRef(null);
     const leftGateRef = useRef(null);
     const rightGateRef = useRef(null);
@@ -159,6 +172,8 @@ function IntroOverlay({ onComplete }) {
         document.body.style.overflow = 'hidden';
 
         const tl = gsap.timeline({
+            defaults: { force3D: true },
+
             onComplete: () => {
                 document.body.style.overflow = '';
                 if (overlayRef.current) {
@@ -174,20 +189,20 @@ function IntroOverlay({ onComplete }) {
         tl.fromTo(
             logoWrapperRef.current,
             { opacity: 0, scale: 0.65 },
-            { opacity: 1, scale: 1, duration: 1.0, ease: 'power3.out' }
+            { opacity: 1, scale: 1, duration: 0.9, ease: 'power3.out' }
         )
-            .to({}, { duration: 0.8 })
+            .to({}, { duration: 0.5 })
             .to(logoWrapperRef.current, {
                 scale: 3.2,
                 opacity: 0,
-                duration: 1.1,
+                duration: 1.0,
                 ease: 'power3.inOut',
             })
             .to(
                 leftGateRef.current,
                 {
                     xPercent: -100,
-                    duration: 1.3,
+                    duration: 1.1,
                     ease: 'power4.inOut',
                 },
                 '-=0.4'
@@ -196,7 +211,7 @@ function IntroOverlay({ onComplete }) {
                 rightGateRef.current,
                 {
                     xPercent: 100,
-                    duration: 1.3,
+                    duration: 1.1,
                     ease: 'power4.inOut',
                 },
                 '<'
@@ -212,11 +227,12 @@ function IntroOverlay({ onComplete }) {
         <div
             ref={overlayRef}
             className="fixed inset-0 z-[1000] flex pointer-events-auto select-none overflow-hidden"
-            style={{ perspective: '1200px' }}
+            style={{ perspective: '1200px', transform: 'translateZ(0)' }}
         >
             <div
                 ref={leftGateRef}
                 className="gate-panel w-1/2 h-full bg-[#1b1c1a] border-r border-[#C9A96E]/20 relative flex items-center justify-end pr-10"
+                style={{ willChange: 'transform', backfaceVisibility: 'hidden' }}
             >
                 <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]" />
             </div>
@@ -224,6 +240,7 @@ function IntroOverlay({ onComplete }) {
             <div
                 ref={rightGateRef}
                 className="gate-panel w-1/2 h-full bg-[#1b1c1a] border-l border-[#C9A96E]/20 relative flex items-center justify-start pl-10"
+                style={{ willChange: 'transform', backfaceVisibility: 'hidden' }}
             >
                 <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]" />
             </div>
@@ -242,7 +259,7 @@ function IntroOverlay({ onComplete }) {
             </div>
         </div>
     );
-}
+})
 
 // 3. MOUSE FOLLOWER
 function MouseFollower() {
