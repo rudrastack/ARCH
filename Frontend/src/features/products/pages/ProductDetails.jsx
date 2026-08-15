@@ -36,6 +36,7 @@ export default function ProductDetails() {
     const [qty, setQty] = useState(1);
     const [activeTab, setActiveTab] = useState("story");
     const [cartFeedback, setCartFeedback] = useState(false);
+    const [notification, setNotification] = useState(null);
 
     const variants = product?.variants ?? [];
 
@@ -47,14 +48,35 @@ export default function ProductDetails() {
                 quantity: qty
             });
 
+            // Show success notification
+            setNotification({
+                type: "success",
+                message: "PRODUCT ADDED TO CART"
+            });
+
+            // Optional: button feedback
             setCartFeedback(true);
 
             setTimeout(() => {
                 setCartFeedback(false);
             }, 2000);
 
+            // Remove toast after 3 seconds
+            setTimeout(() => {
+                setNotification(null);
+            }, 3000);
+
         } catch (error) {
             console.error("Add to cart failed:", error);
+
+            setNotification({
+                type: "error",
+                message: "FAILED TO ADD PRODUCT TO CART"
+            });
+
+            setTimeout(() => {
+                setNotification(null);
+            }, 3000);
         }
     };
 
@@ -525,6 +547,85 @@ export default function ProductDetails() {
                                 {outOfStock ? "Out of Stock" : "Buy Now"}
                             </button>
                         </div>
+                        {/* Notification FOR CTA BUTTONS */}
+                        {notification && (
+                            <div className="fixed top-12 right-12 z-50 animate-fade-in-down">
+                                <div
+                                    className="p-4 rounded-none shadow-sm flex items-center justify-between gap-4 max-w-md border"
+                                    style={{
+                                        backgroundColor:
+                                            notification.type === "success"
+                                                ? "#f0fdf4"
+                                                : notification.type === "error"
+                                                    ? "#fef2f2"
+                                                    : "#fffbeb",
+
+                                        borderColor:
+                                            notification.type === "success"
+                                                ? "#bbf7d0"
+                                                : notification.type === "error"
+                                                    ? "#fecaca"
+                                                    : "#fef3c7",
+                                    }}
+                                >
+                                    <div className="flex items-center gap-3">
+
+                                        {notification.type === "success" ? (
+                                            <svg
+                                                className="w-5 h-5 text-green-700 flex-shrink-0"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                                strokeWidth="2"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                />
+                                            </svg>
+                                        ) : (
+                                            <svg
+                                                className="w-5 h-5 text-red-700 flex-shrink-0"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                                strokeWidth="2"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    d="M6 18L18 6M6 6l12 12"
+                                                />
+                                            </svg>
+                                        )}
+
+                                        <p className="text-xs font-medium tracking-wide text-neutral-800">
+                                            {notification.message}
+                                        </p>
+                                    </div>
+
+                                    <button
+                                        onClick={() => setNotification(null)}
+                                        className="text-neutral-400 hover:text-neutral-600 transition-colors"
+                                    >
+                                        <svg
+                                            className="w-4 h-4"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth="2"
+                                                d="M6 18L18 6M6 6l12 12"
+                                            />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
 
                         {/* Trust Badges */}
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, paddingTop: 20, borderTop: `1px solid ${t.outlineVariant}` }}>

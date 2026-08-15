@@ -17,8 +17,7 @@ const t = {
     accentGold: "#C9A96E",
     accentRed: "#b71c1c",
 };
-// handleUpdateQuantity,
-// handleRemoveItem
+
 export default function Cart() {
     const {
         cartItems,
@@ -36,7 +35,6 @@ export default function Cart() {
     useEffect(() => {
         handleGetCart();
     }, []);
-
 
     const getSelectedVariant = (item) => {
         return item?.product?.variants?.find(
