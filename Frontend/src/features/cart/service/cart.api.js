@@ -33,5 +33,9 @@ export async function decreaseCartItemAPI({ productId, variantId }) {
     return response.data
 }
 
+export async function cartOrderAPI() {
+    const response = await cartApiInstance.post("/order/checkout")
+    return response.data
+}
 
 

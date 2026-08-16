@@ -26,44 +26,36 @@ export default function Cart() {
     const user = useSelector(state => state.auth.user);
     const { error, isLoading, Razorpay } = useRazorpay();
 
-    const handlePayment = () => {
+    const handleCheckOut = async () => {
+        const order = await handleCartOrder();
         const options = {
-            key: "YOUR_RAZORPAY_KEY",
-            amount: 50000, // Amount in paise
-            currency: "INR",
-            name: "Test Company",
+            key: "rzp_test_TQWa86qmNQxtTo",
+            amount: order.amount, // Amount in paise
+            currency: order.currency,
+            name: "ARKS",
             description: "Test Transaction",
-            order_id: "order_9A33XWu170gUtm", // Generate order_id on server
+            order_id: order.order_id, // Generate order_id on server
             handler: (response) => {
                 console.log(response);
                 alert("Payment Successful!");
             },
             prefill: {
-                name: "John Doe",
-                email: "john.doe@example.com",
-                contact: "9999999999",
+                name: user?.fullname,
+                email: user?.email,
+                contact: user?.contact,
             },
             theme: {
-                color: "#F37254",
+                color: t.primary,
             },
         };
 
         const razorpayInstance = new Razorpay(options);
         razorpayInstance.open();
-        return (
-            <div>
-                <h1>Payment Page</h1>
-                {isLoading && <p>Loading Razorpay...</p>}
-                {error && <p>Error loading Razorpay: {error}</p>}
-                <button onClick={handlePayment} disabled={isLoading}>
-                    Pay Now
-                </button>
-            </div>
-        );
     };
 
     const {
         handleGetCart,
+        handleCartOrder,
         handleRemoveCartItem,
         handleIncreaseCartItem,
         handleDecreaseCartItem,
@@ -328,7 +320,7 @@ export default function Cart() {
                                     {/* Checkout CTA */}
                                     <button
                                         className="arks-checkout-btn"
-                                        onClick={() => handlePayment()}
+                                        onClick={handleCheckOut}
                                         style={{ width: "100%", padding: "18px 0", background: t.primary, color: t.primaryText, border: "none", marginTop: 32, fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.2em", cursor: "pointer", transition: "all 0.3s" }}
                                     >
                                         Proceed to Checkout
