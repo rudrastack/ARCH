@@ -2,6 +2,8 @@ import React, { useEffect } from 'react';
 import { useCart } from '../hook/useCart';
 import { useNavigate, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { useRazorpay, RazorpayOrderOptions } from "react-razorpay";
+
 
 const t = {
     primary: "#0a192f",
@@ -22,7 +24,43 @@ export default function Cart() {
     const navigate = useNavigate();
     const cart = useSelector(state => state.cart)
     const user = useSelector(state => state.auth.user);
+    const { error, isLoading, Razorpay } = useRazorpay();
 
+    const handlePayment = () => {
+        const options = {
+            key: "YOUR_RAZORPAY_KEY",
+            amount: 50000, // Amount in paise
+            currency: "INR",
+            name: "Test Company",
+            description: "Test Transaction",
+            order_id: "order_9A33XWu170gUtm", // Generate order_id on server
+            handler: (response) => {
+                console.log(response);
+                alert("Payment Successful!");
+            },
+            prefill: {
+                name: "John Doe",
+                email: "john.doe@example.com",
+                contact: "9999999999",
+            },
+            theme: {
+                color: "#F37254",
+            },
+        };
+
+        const razorpayInstance = new Razorpay(options);
+        razorpayInstance.open();
+        return (
+            <div>
+                <h1>Payment Page</h1>
+                {isLoading && <p>Loading Razorpay...</p>}
+                {error && <p>Error loading Razorpay: {error}</p>}
+                <button onClick={handlePayment} disabled={isLoading}>
+                    Pay Now
+                </button>
+            </div>
+        );
+    };
 
     const {
         handleGetCart,
@@ -82,10 +120,7 @@ export default function Cart() {
         return item.price?.currency || "INR";
     };
 
-
-
     const shippingCost = cart.totalPrice > 2000 ? 0 : 250;
-
 
     return (
         <div style={{ background: t.surface, color: t.onSurface, fontFamily: "'Hanken Grotesk', sans-serif", minHeight: "100vh" }}>
@@ -293,7 +328,7 @@ export default function Cart() {
                                     {/* Checkout CTA */}
                                     <button
                                         className="arks-checkout-btn"
-                                        onClick={() => alert("Proceeding to secure checkout...")}
+                                        onClick={() => handlePayment()}
                                         style={{ width: "100%", padding: "18px 0", background: t.primary, color: t.primaryText, border: "none", marginTop: 32, fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.2em", cursor: "pointer", transition: "all 0.3s" }}
                                     >
                                         Proceed to Checkout
