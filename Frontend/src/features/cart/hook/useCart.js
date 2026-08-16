@@ -15,24 +15,31 @@ export const useCart = () => {
     async function handleGetCart() {
         const data = await getCart();
         dispatch(setItems(data.cart));
+        return data.cart;
 
     }
 
     async function handleRemoveCartItem({ productId, variantId }) {
         const data = await removeCartItemAPI({ productId, variantId })
         dispatch(removeCartItem({ productId, variantId }))
+        await handleGetCart();
+
         return data
     }
 
     async function handleIncreaseCartItem({ productId, variantId }) {
         const data = await increaseCartItemAPI({ productId, variantId })
         dispatch(increaseCartItem({ productId, variantId }))
+        await handleGetCart();
+
         return data
     }
 
     async function handleDecreaseCartItem({ productId, variantId }) {
         const data = await decreaseCartItemAPI({ productId, variantId })
         dispatch(decreaseCartItem({ productId, variantId }))
+        await handleGetCart();
+
         return data
     }
 

@@ -19,7 +19,10 @@ const t = {
 };
 
 export default function Cart() {
+    const navigate = useNavigate();
     const cart = useSelector(state => state.cart)
+    const user = useSelector(state => state.auth.user);
+
 
     const {
         handleGetCart,
@@ -27,23 +30,14 @@ export default function Cart() {
         handleIncreaseCartItem,
         handleDecreaseCartItem,
     } = useCart();
-    const user = useSelector(state => state.auth.user);
-    const navigate = useNavigate();
 
     useEffect(() => {
         handleGetCart();
     }, []);
 
-    console.log(cart)
-
-
     const getSelectedVariant = (item) => {
-        return item?.product?.variants?.find(
-            v => v._id === item.variant
-        );
-
+        return item?.product?.variants;
     };
-
     const getItemImage = (item) => {
         const variant = getSelectedVariant(item);
 
@@ -87,6 +81,7 @@ export default function Cart() {
     const getItemCurrency = (item) => {
         return item.price?.currency || "INR";
     };
+
 
 
     const shippingCost = cart.totalPrice > 2000 ? 0 : 250;
@@ -198,7 +193,7 @@ export default function Cart() {
                                                             {getItemTitle(item)}
                                                         </h3>
                                                         <span style={{ fontSize: 15, fontWeight: 600, color: t.primary }}>
-                                                            {getItemCurrency(subtotal, itemCur)}
+                                                            {getItemCurrency(itemCur)}
                                                         </span>
                                                     </div>
                                                     {variantText && (
@@ -291,7 +286,7 @@ export default function Cart() {
                                                 <span style={{ fontSize: 11, color: t.onSurfaceVariant }}>Includes VAT if applicable</span>
                                             </div>
                                             <span style={{ fontSize: 24, fontWeight: 700, color: t.primary }}>
-                                                { }
+                                                {cart.totalPrice + shippingCost + " " + cart.currency}
                                             </span>
                                         </div>
                                     </div>
