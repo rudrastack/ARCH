@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import cartModel from "../models/cart.model.js";
 import productModel from "../models/product.model.js";
 import { stockOfVariant } from "../dao/product.dao.js";
@@ -71,8 +72,58 @@ export const addToCart = async (req, res) => {
 
 export const getCart = async (req, res) => {
     const user = req.user;
-    let cart = await cartModel.findOne({ user: user._id }).populate("items.product");
-    if (!cart) {
+     let cart =( await cartModel.aggregate([
+                {
+            $match: {
+                user: new mongoose.Types.ObjectId(user._id)
+            }
+            },
+            { $unwind: { path: '$items' } },
+            {
+            $lookup: {
+                from: 'products',
+                localField: 'items.product',
+                foreignField: '_id',
+                as: 'items.product'
+            }
+            },
+            { $unwind: { path: '$items.product' } },
+            {
+            $unwind: { path: '$items.product.variants' }
+            },
+            {
+            $match: {
+                $expr: {
+                $eq: [
+                    '$items.variant',
+                    '$items.product.variants._id'
+                ]
+                }
+            }
+            },
+            {
+            $addFields: {
+                itemPrice: {
+                $multiply: [
+                    '$items.quantity',
+                    '$items.product.variants.price.amount'
+                ]
+                }
+            }
+            },
+            {
+            $group: {
+                _id: '$_id',
+                totalPrice: { $sum: '$itemPrice' },
+                currency: {
+                $first: '$items.price.currency'
+                },
+                items: { $push: '$items' }
+            }
+            }
+            ]))[ 0 ] 
+
+    if (!cart) {    
         return res.status(404).json({
             message: "Cart not found",
             success: false
@@ -198,4 +249,3 @@ export async function decreaseCartItemQuantity(req, res) {
         success: true
     })
 }
-

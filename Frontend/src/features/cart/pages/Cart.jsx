@@ -19,22 +19,23 @@ const t = {
 };
 
 export default function Cart() {
+    const cart = useSelector(state => state.cart)
+
     const {
-        cartItems,
-        cartSubtotal,
         handleGetCart,
         handleRemoveCartItem,
         handleIncreaseCartItem,
         handleDecreaseCartItem,
-        handleAddToCart,
     } = useCart();
-
     const user = useSelector(state => state.auth.user);
     const navigate = useNavigate();
 
     useEffect(() => {
         handleGetCart();
     }, []);
+
+    console.log(cart)
+
 
     const getSelectedVariant = (item) => {
         return item?.product?.variants?.find(
@@ -87,8 +88,9 @@ export default function Cart() {
         return item.price?.currency || "INR";
     };
 
-    const shippingCost = cartSubtotal > 2000 ? 0 : 250;
-    const estimatedTotal = cartSubtotal + (cartItems?.length > 0 ? shippingCost : 0);
+
+    const shippingCost = cart.totalPrice > 2000 ? 0 : 250;
+
 
     return (
         <div style={{ background: t.surface, color: t.onSurface, fontFamily: "'Hanken Grotesk', sans-serif", minHeight: "100vh" }}>
@@ -122,9 +124,9 @@ export default function Cart() {
                     </span>
                     <button onClick={() => navigate('/cart')} style={{ background: "none", border: "none", cursor: "pointer", color: t.primary, position: "relative", display: "flex" }}>
                         <span className="material-symbols-outlined" style={{ fontSize: 24 }}>shopping_bag</span>
-                        {cartItems?.length > 0 && (
+                        {cart.items.length > 0 && (
                             <span style={{ position: "absolute", top: -4, right: -6, background: t.accentGold, color: t.primary, fontSize: 10, fontWeight: 700, borderRadius: "50%", width: 18, height: 18, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                {cartItems?.length}
+                                {cart.items.length}
                             </span>
                         )}
                     </button>
@@ -143,10 +145,10 @@ export default function Cart() {
                             Shopping Bag
                         </h1>
                         <p style={{ fontSize: 13, color: t.onSurfaceVariant, marginTop: 8 }}>
-                            {cartItems?.length === 1 ? '1 bespoke item reserved' : `${cartItems?.length} bespoke items reserved`}
+                            {cart.items.length === 1 ? '1 bespoke item reserved' : `${cart.items.length} bespoke items reserved`}
                         </p>
                     </div>
-                    {cartItems?.length === 0 ? (
+                    {cart.items.length === 0 ? (
                         /* Empty Cart State */
                         <div style={{ textAlign: "center", padding: "80px 24px", background: t.surfaceContainerLow, border: `1px solid ${t.outlineVariant}`, borderRadius: 4 }}>
                             <span className="material-symbols-outlined" style={{ fontSize: 64, color: t.onSurfaceVariant, marginBottom: 16 }}>
@@ -168,7 +170,7 @@ export default function Cart() {
 
                             {/* Items List (Left / Main Panel - 7 columns) */}
                             <div className="lg:col-span-7" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-                                {cartItems?.map((item, index) => {
+                                {cart.items?.map((item, index) => {
                                     const unitPrice = getItemUnitPrice(item);
                                     const itemCur = getItemCurrency(item);
                                     const subtotal = unitPrice * (item.quantity || 1);
@@ -271,7 +273,7 @@ export default function Cart() {
                                     <div style={{ display: "flex", flexDirection: "column", gap: 16, fontSize: 14 }}>
                                         <div style={{ display: "flex", justifyContent: "space-between" }}>
                                             <span style={{ color: t.onSurfaceVariant }}>Bag Subtotal</span>
-                                            <span style={{ fontWeight: 600, color: t.onSurface }}>{ } {cartSubtotal}</span>
+                                            <span style={{ fontWeight: 600, color: t.onSurface }}>{cart.totalPrice}</span>
                                         </div>
                                         <div style={{ display: "flex", justifyContent: "space-between" }}>
                                             <span style={{ color: t.onSurfaceVariant }}>Express Shipping</span>
@@ -289,7 +291,7 @@ export default function Cart() {
                                                 <span style={{ fontSize: 11, color: t.onSurfaceVariant }}>Includes VAT if applicable</span>
                                             </div>
                                             <span style={{ fontSize: 24, fontWeight: 700, color: t.primary }}>
-                                                {estimatedTotal + " " + cartItems[0].price.currency}
+                                                { }
                                             </span>
                                         </div>
                                     </div>

@@ -4,11 +4,7 @@ import { setItems, addItems, removeCartItem, increaseCartItem, decreaseCartItem 
 
 export const useCart = () => {
 
-    const dispatch = useDispatch();
-    const cartItems = useSelector(state => state.cart.items);
-    const cartSubtotal = cartItems.reduce((total, item) => {
-        return total + (item.price?.amount || 0) * (item.quantity || 0);
-    }, 0);
+    const dispatch = useDispatch();;
 
     async function handleAddToCart({ productId, variantId, quantity = 1 }) {
         const data = await addToCart({ productId, variantId, quantity });
@@ -18,8 +14,8 @@ export const useCart = () => {
 
     async function handleGetCart() {
         const data = await getCart();
-        dispatch(setItems(data.cart.items));
-        return data;
+        dispatch(setItems(data.cart));
+
     }
 
     async function handleRemoveCartItem({ productId, variantId }) {
@@ -41,8 +37,6 @@ export const useCart = () => {
     }
 
     return {
-        cartItems,
-        cartSubtotal,
         handleGetCart,
         handleAddToCart,
         handleRemoveCartItem,
