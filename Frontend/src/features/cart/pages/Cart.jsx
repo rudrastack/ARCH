@@ -21,6 +21,16 @@ const t = {
 };
 
 export default function Cart() {
+
+    const {
+        handleGetCart,
+        handleCartOrder,
+        handleVerifyOrder,
+        handleRemoveCartItem,
+        handleIncreaseCartItem,
+        handleDecreaseCartItem,
+    } = useCart();
+
     const navigate = useNavigate();
     const cart = useSelector(state => state.cart)
     const user = useSelector(state => state.auth.user);
@@ -43,12 +53,11 @@ export default function Cart() {
             // ✅ FIX
             order_id: response.order.id,
 
-            handler: (response) => {
-                console.log("RAZORPAY RESPONSE:", response);
-
-                console.log("paymentId:", response.razorpay_payment_id);
-                console.log("orderId:", response.razorpay_order_id);
-                console.log("signature:", response.razorpay_signature);
+            handler: async (response) => {
+                const isValid = await handleVerifyOrder(response)
+                if (isValid) {
+                    navigate(`/order-success?order_id=${response?.razorpay_order_id}`)
+                }
             },
 
             prefill: {
@@ -65,13 +74,6 @@ export default function Cart() {
         const razorpayInstance = new Razorpay(options);
         razorpayInstance.open();
     };
-    const {
-        handleGetCart,
-        handleCartOrder,
-        handleRemoveCartItem,
-        handleIncreaseCartItem,
-        handleDecreaseCartItem,
-    } = useCart();
 
     useEffect(() => {
         handleGetCart();

@@ -48,10 +48,16 @@ export const useCart = () => {
         console.log(data);
         return data;
     }
+    async function handleVerifyOrder({ razorpay_order_id, razorpay_payment_id, razorpay_signature }) {
+        const data = await verifyOrderAPI({ razorpay_order_id, razorpay_payment_id, razorpay_signature });
+        return data.success;
+    }
+
     return {
         handleGetCart,
         handleCartOrder,
         handleAddToCart,
+        handleVerifyOrder,
         handleRemoveCartItem,
         handleIncreaseCartItem,
         handleDecreaseCartItem,
