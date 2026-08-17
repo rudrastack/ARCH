@@ -1,5 +1,5 @@
 import express from "express";
-import { addToCart, getCart, removeFromCart, increaseCartItemQuantity, decreaseCartItemQuantity, createOrderController } from "../controllers/cart.controller.js";
+import { addToCart, getCart, removeFromCart, increaseCartItemQuantity, decreaseCartItemQuantity, createOrderController, verifyPaymentController } from "../controllers/cart.controller.js";
 import { authenticateUser } from "../middleware/auth.middleware.js";
 import { validateAddToCart, validateIncrementCartItemQuantity, validateDecrementCartItemQuantity } from "../validation/cart.validator.js";
 
@@ -38,5 +38,7 @@ router.patch("/increase/:productId/:variantId", authenticateUser, validateIncrem
 router.patch("/decrease/:productId/:variantId", authenticateUser, validateDecrementCartItemQuantity, decreaseCartItemQuantity);
 
 router.post("/order/checkout", authenticateUser, createOrderController);
+
+router.post("/order/verify", authenticateUser, verifyPaymentController)
 
 export default router;

@@ -45,6 +45,7 @@ export const useCart = () => {
 
     async function handleCartOrder() {
         const data = await cartOrderAPI();
+        console.log(data);
         return data;
     }
     return {

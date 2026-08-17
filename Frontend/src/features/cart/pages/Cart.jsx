@@ -27,23 +27,36 @@ export default function Cart() {
     const { error, isLoading, Razorpay } = useRazorpay();
 
     const handleCheckOut = async () => {
-        const order = await handleCartOrder();
+        const response = await handleCartOrder();
+
+        console.log("Orderamount:", response.order.amount);
+        console.log("Ordercurrency:", response.order.currency);
+        console.log("Order ID:", response.order.id);
+
         const options = {
             key: "rzp_test_TQWa86qmNQxtTo",
-            amount: order.amount, // Amount in paise
-            currency: order.currency,
+            amount: response.order.amount,
+            currency: response.order.currency,
             name: "ARKS",
             description: "Test Transaction",
-            order_id: order.order_id, // Generate order_id on server
+
+            // ✅ FIX
+            order_id: response.order.id,
+
             handler: (response) => {
-                console.log(response);
-                alert("Payment Successful!");
+                console.log("RAZORPAY RESPONSE:", response);
+
+                console.log("paymentId:", response.razorpay_payment_id);
+                console.log("orderId:", response.razorpay_order_id);
+                console.log("signature:", response.razorpay_signature);
             },
+
             prefill: {
                 name: user?.fullname,
                 email: user?.email,
                 contact: user?.contact,
             },
+
             theme: {
                 color: t.primary,
             },
@@ -52,7 +65,6 @@ export default function Cart() {
         const razorpayInstance = new Razorpay(options);
         razorpayInstance.open();
     };
-
     const {
         handleGetCart,
         handleCartOrder,
