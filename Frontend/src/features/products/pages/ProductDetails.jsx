@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useProduct } from "../hook/useProduct";
 import { useCart } from "../../../features/cart/hook/useCart";
 import { useSelector } from "react-redux";
+import { useAuth } from "../../../features/auth/hook/useAuth";
 
 // design tokens
 const t = {
@@ -23,9 +24,10 @@ export default function ProductDetails() {
     const { productId } = useParams();
     const navigate = useNavigate();
     const { handleGetProductById } = useProduct();
-    const { handleAddToCart, handleGetCart } = useCart();
+    const { handleAddToCart, handleGetCart, error } = useCart();
     const user = useSelector(state => state.auth.user)
     const cartItems = useSelector(state => state.cart?.items)
+    const { handleLogout } = useAuth();
 
     const [product, setProduct] = useState(null);
     const [activeThumb, setActiveThumb] = useState(0);
@@ -37,6 +39,8 @@ export default function ProductDetails() {
     const [activeTab, setActiveTab] = useState("story");
     const [cartFeedback, setCartFeedback] = useState(false);
     const [notification, setNotification] = useState(null);
+    const [showAccount, setShowAccount] = useState(false);
+
 
     const variants = product?.variants ?? [];
 
@@ -71,7 +75,7 @@ export default function ProductDetails() {
 
             setNotification({
                 type: "error",
-                message: "FAILED TO ADD PRODUCT TO CART"
+                message: error?.response?.data?.message || "FAILED TO ADD PRODUCT TO CART"
             });
 
             setTimeout(() => {
@@ -218,6 +222,18 @@ export default function ProductDetails() {
         setTimeout(() => { setActiveThumb(index); setImgOpacity(1); }, 280);
     }
 
+    const handleUserLogout = async () => {
+        try {
+            await handleLogout();
+
+            setShowAccount(false);
+            navigate("/");
+
+        } catch (err) {
+            console.error("Logout failed:", err);
+        }
+    };
+
     if (!product) {
         return (
             <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: t.surface, gap: 16, fontFamily: "'Hanken Grotesk',sans-serif" }}>
@@ -304,9 +320,163 @@ export default function ProductDetails() {
                             />
                         )}
                     </button>
-                    <button style={{ background: "none", border: "none", cursor: "pointer", color: t.primary, fontSize: 22, display: "flex" }} title="Account">
-                        <span className="material-symbols-outlined" style={{ fontSize: 22 }}>person</span>
-                    </button>
+                    <div style={{ position: "relative" }}>
+
+                        <button
+                            onClick={() => setShowAccount(prev => !prev)}
+                            style={{
+                                background: "none",
+                                border: "none",
+                                cursor: "pointer",
+                                color: t.primary,
+                                fontSize: 22,
+                                display: "flex"
+                            }}
+                            title="Account"
+                        >
+                            <span
+                                className="material-symbols-outlined"
+                                style={{ fontSize: 22 }}
+                            >
+                                person
+                            </span>
+                        </button>
+
+                        {showAccount && (
+                            <div
+                                style={{
+                                    position: "absolute",
+                                    top: "calc(100% + 10px)",
+                                    right: 0,
+                                    width: 230,
+                                    background: "#fff",
+                                    border: "1px solid #e5ddd0",
+                                    borderRadius: 12,
+                                    padding: 16,
+                                    boxShadow: "0 10px 30px rgba(0,0,0,0.12)",
+                                    zIndex: 1000
+                                }}
+                            >
+
+                                {/* Header */}
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        alignItems: "flex-start",
+                                        marginBottom: 14
+                                    }}
+                                >
+                                    <div>
+                                        <div
+                                            style={{
+                                                fontSize: 13,
+                                                fontWeight: 600,
+                                                color: "#1b1c1a"
+                                            }}
+                                        >
+                                            My Account
+                                        </div>
+
+                                        <div
+                                            style={{
+                                                fontSize: 10,
+                                                color: "#8a8175",
+                                                marginTop: 3
+                                            }}
+                                        >
+                                            Account details
+                                        </div>
+                                    </div>
+
+                                    {/* Logout */}
+                                    <button
+                                        onClick={handleUserLogout}
+                                        title="Logout"
+                                        style={{
+                                            border: "none",
+                                            background: "transparent",
+                                            cursor: "pointer",
+                                            padding: 4,
+                                            display: "flex",
+                                            color: "#b84a4a"
+                                        }}
+                                    >
+                                        <svg
+                                            width="18"
+                                            height="18"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="1.8"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        >
+                                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                            <polyline points="16 17 21 12 16 7" />
+                                            <line x1="21" y1="12" x2="9" y2="12" />
+                                        </svg>
+                                    </button>
+                                </div>
+
+                                {/* User details */}
+                                <div
+                                    style={{
+                                        borderTop: "1px solid #eee7dc",
+                                        paddingTop: 12
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            fontSize: 12,
+                                            color: "#1b1c1a",
+                                            marginBottom: 8
+                                        }}
+                                    >
+                                        <span style={{ color: "#8a8175" }}>
+                                            Full Name
+                                        </span>
+
+                                        <div style={{ marginTop: 2, fontWeight: 500 }}>
+                                            {user?.fullname || "Not available"}
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        style={{
+                                            fontSize: 12,
+                                            color: "#1b1c1a",
+                                            marginBottom: 8
+                                        }}
+                                    >
+                                        <span style={{ color: "#8a8175" }}>
+                                            Email
+                                        </span>
+
+                                        <div style={{ marginTop: 2, fontWeight: 500 }}>
+                                            {user?.email || "Not available"}
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        style={{
+                                            fontSize: 12,
+                                            color: "#1b1c1a"
+                                        }}
+                                    >
+                                        <span style={{ color: "#8a8175" }}>
+                                            Contact
+                                        </span>
+
+                                        <div style={{ marginTop: 2, fontWeight: 500 }}>
+                                            {user?.contact || "Not available"}
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        )}
+                    </div>
                 </div>
             </nav>
 
@@ -675,7 +845,7 @@ export default function ProductDetails() {
                             )}
                             {activeTab === "shipping" && (
                                 <div style={{ textAlign: "center" }}>
-                                    <p style={{ fontSize: 16, lineHeight: 1.7, color: t.onSurfaceVariant }}>Complimentary express shipping on all orders over $150. Orders processed within 24 hours.</p>
+                                    <p style={{ fontSize: 16, lineHeight: 1.7, color: t.onSurfaceVariant }}>Complimentary express shipping on all orders over 250rs. Orders processed within 24 hours.</p>
                                     <div style={{ display: "flex", justifyContent: "center", gap: 64, padding: "20px 0", borderTop: `1px solid ${t.outlineVariant}`, borderBottom: `1px solid ${t.outlineVariant}`, margin: "16px 0" }}>
                                         <div><p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: t.primary, marginBottom: 4 }}>Domestic</p><p style={{ color: t.onSurfaceVariant, fontSize: 14, margin: 0 }}>2–3 Business Days</p></div>
                                         <div><p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: t.primary, marginBottom: 4 }}>International</p><p style={{ color: t.onSurfaceVariant, fontSize: 14, margin: 0 }}>5–7 Business Days</p></div>

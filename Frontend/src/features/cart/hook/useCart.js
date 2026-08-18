@@ -1,17 +1,32 @@
 import { addToCart, getCart, removeCartItemAPI, increaseCartItemAPI, decreaseCartItemAPI, cartOrderAPI, verifyOrderAPI } from "../service/cart.api";
 import { useDispatch, useSelector } from "react-redux";
-import { setItems, addItems, removeCartItem, increaseCartItem, decreaseCartItem } from "../state/cart.slice";
+import { setError, setItems, addItems, removeCartItem, increaseCartItem, decreaseCartItem } from "../state/cart.slice";
 
 export const useCart = () => {
 
     const dispatch = useDispatch();;
+    const error = useSelector((state) => state.cart.error);
+
 
     async function handleAddToCart({ productId, variantId, quantity = 1 }) {
-        const data = await addToCart({ productId, variantId, quantity });
-        await handleGetCart();
-        return data;
-    }
+        try {
+            const data = await addToCart({
+                productId,
+                variantId,
+                quantity
+            });
 
+            await handleGetCart();
+
+            return data;
+
+        } catch (err) {
+            console.error("ADD TO CART ERROR:", err.response?.data);
+
+
+            throw err;
+        }
+    }
     async function handleGetCart() {
         const data = await getCart();
         dispatch(setItems(data.cart));
@@ -55,6 +70,7 @@ export const useCart = () => {
     }
 
     return {
+        error,
         handleGetCart,
         handleCartOrder,
         handleAddToCart,

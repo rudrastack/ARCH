@@ -1,9 +1,12 @@
-import { register, login, getMe } from "../service/auth.api.js";
+import { register, login, getMe, logoutAPI } from "../service/auth.api.js";
 import { setError, setLoading, setUser } from "../state/auth.slice";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 export const useAuth = () => {
     const dispatch = useDispatch();
+    const error = useSelector((state) => state.auth.error);
+    const loading = useSelector((state) => state.auth.loading);
+
 
     async function handleRegister({ email, password, fullname, contact, isSeller = false }) {
         const data = await register({ email, password, fullname, contact, isSeller })
@@ -11,9 +14,28 @@ export const useAuth = () => {
     }
 
     async function handleLogin({ email, password }) {
-        const data = await login({ email, password })
-        dispatch(setUser(data.user))
-        return data.user
+        try {
+            dispatch(setLoading(true));
+            dispatch(setError(""));
+
+            const data = await login({ email, password });
+
+            dispatch(setUser(data.user));
+
+            return data.user;
+
+        } catch (err) {
+            const message =
+                err.response?.data?.message ||
+                "Invalid email or password";
+
+            dispatch(setError(message));
+
+            throw err;
+
+        } finally {
+            dispatch(setLoading(false));
+        }
     }
 
     async function handleGetMe() {
@@ -28,9 +50,25 @@ export const useAuth = () => {
         }
     }
 
+    async function handleLogout() {
+        try {
+            await logoutAPI();
+
+            dispatch(setUser(null));
+            dispatch(setError(""));
+
+        } catch (err) {
+            console.error("Logout failed:", err);
+        }
+    };
+
+
     return {
-        handleRegister,
+        error,
+        loading,
         handleLogin,
-        handleGetMe
+        handleGetMe,
+        handleLogout,
+        handleRegister,
     }
 }

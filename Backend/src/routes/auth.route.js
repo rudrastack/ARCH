@@ -3,6 +3,7 @@ import { validateRegisterUser, validateLoginUser } from '../validation/auth.vali
 import { registerUser } from '../controllers/auth.controller.js';
 import { login } from '../controllers/auth.controller.js';
 import { getMe } from '../controllers/auth.controller.js';
+import { logout } from '../controllers/auth.controller.js';
 import { googleCallback } from '../controllers/auth.controller.js';
 import { authenticateUser } from '../middleware/auth.middleware.js';
 import passport from 'passport';
@@ -25,6 +26,8 @@ router.get("/google/callback", passport.authenticate("google", { session: false,
  * @access Private
  */
 router.get('/get-me', authenticateUser, getMe)
+
+router.post('/logout', authenticateUser, logout)
 
 
 

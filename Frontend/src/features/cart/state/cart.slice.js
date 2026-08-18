@@ -7,6 +7,7 @@ const cartSlice = createSlice({
         totalPrice: null,
         currency: null,
         items: [],
+        error: null,
     },
     reducers: {
         setItems: (state, action) => {
@@ -16,6 +17,9 @@ const cartSlice = createSlice({
         },
         addItems: (state, action) => {
             state.items.push(action.payload)
+        },
+        setError: (state, action) => {
+            state.error = action.payload
         },
         removeCartItem: (state, action) => {
             const { productId, variantId } = action.payload
@@ -53,5 +57,5 @@ const cartSlice = createSlice({
     }
 })
 
-export const { setItems, addItems, removeCartItem, increaseCartItem, decreaseCartItem } = cartSlice.actions
+export const { setError, setItems, addItems, removeCartItem, increaseCartItem, decreaseCartItem } = cartSlice.actions
 export default cartSlice.reducer

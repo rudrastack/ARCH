@@ -131,7 +131,9 @@ export const Login = () => {
                                 </div>
                             )}
 
+                            {/* Form */}
                             <form onSubmit={handleSubmit} className="space-y-6">
+
                                 {/* Email Address */}
                                 <div className="flex flex-col gap-1">
                                     <label

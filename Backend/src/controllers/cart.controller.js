@@ -289,6 +289,7 @@ export async function verifyPaymentController(req, res) {
     }
 
     payment.status = "paid";
+
     await payment.save();
 
     return res.status(200).json({

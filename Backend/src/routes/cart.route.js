@@ -39,6 +39,6 @@ router.patch("/decrease/:productId/:variantId", authenticateUser, validateDecrem
 
 router.post("/order/checkout", authenticateUser, createOrderController);
 
-router.post("/order/verify", authenticateUser, verifyPaymentController)
+router.post("/order/verify", authenticateUser, verifyPaymentController);
 
 export default router;
