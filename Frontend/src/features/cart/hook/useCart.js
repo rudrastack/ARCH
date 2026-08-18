@@ -1,4 +1,4 @@
-import { addToCart, getCart, removeCartItemAPI, increaseCartItemAPI, decreaseCartItemAPI, cartOrderAPI } from "../service/cart.api";
+import { addToCart, getCart, removeCartItemAPI, increaseCartItemAPI, decreaseCartItemAPI, cartOrderAPI, verifyOrderAPI } from "../service/cart.api";
 import { useDispatch, useSelector } from "react-redux";
 import { setItems, addItems, removeCartItem, increaseCartItem, decreaseCartItem } from "../state/cart.slice";
 
@@ -50,6 +50,7 @@ export const useCart = () => {
     }
     async function handleVerifyOrder({ razorpay_order_id, razorpay_payment_id, razorpay_signature }) {
         const data = await verifyOrderAPI({ razorpay_order_id, razorpay_payment_id, razorpay_signature });
+        console.log("VERIFY API DATA:", data);
         return data.success;
     }
 

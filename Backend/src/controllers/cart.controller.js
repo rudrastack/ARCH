@@ -221,8 +221,7 @@ export async function createOrderController(req, res) {
         
         razorpay: {
             orderId: order.id,
-            paymentId: order.payment_id,
-            signature: order.signature
+        
         },
         price: {
             amount: cart.totalPrice,
@@ -251,39 +250,49 @@ export async function createOrderController(req, res) {
 }
 
 export async function verifyPaymentController(req, res) {
-    
-const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
-const payment = await PaymentModel.findOne({ "razorpay.orderId": razorpay_order_id, status: "pending" });
+    const {
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature
+    } = req.body;
 
-if (!payment) {
-    return res.status(404).json({
-        message: "Payment not found",
-        success: false
+    const payment = await PaymentModel.findOne({
+        "razorpay.orderId": razorpay_order_id,
+        status: "pending"
     });
-}
 
-const isPaymentValid = validatePaymentSignature({
-    orderId: razorpay_order_id,
-    paymentId: razorpay_payment_id
-}, razorpay_signature, config.RAZORPAY_KEY_SECRET);
+    if (!payment) {
+        return res.status(404).json({
+            message: "Payment not found",
+            success: false
+        });
+    }
 
-if (!isPaymentValid) {
-    payment.status = "failed";
+ const isPaymentValid = validatePaymentVerification(
+    {
+        order_id: payment.razorpay.orderId,
+        payment_id: razorpay_payment_id
+    },
+    razorpay_signature,
+    config.RAZORPAY_KEY_SECRET
+);
+
+    if (!isPaymentValid) {
+        payment.status = "failed";
+        await payment.save();
+
+        return res.status(400).json({
+            message: "Payment verification failed",
+            success: false
+        });
+    }
+
+    payment.status = "paid";
     await payment.save();
-    return res.status(400).json({
-        message: "Payment verification failed",
-        success: false
+
+    return res.status(200).json({
+        message: "Payment verified successfully",
+        success: true
     });
 }
-
-payment.status = "paid";
-await payment.save();
-
-return res.status(200).json({
-    message: "Payment verified successfully",
-    success: true
-});
-
-}
-

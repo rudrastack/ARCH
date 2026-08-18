@@ -54,9 +54,16 @@ export default function Cart() {
             order_id: response.order.id,
 
             handler: async (response) => {
-                const isValid = await handleVerifyOrder(response)
+                console.log("RAZORPAY RESPONSE:", response);
+
+                const isValid = await handleVerifyOrder(response);
+
+                console.log("PAYMENT VALID:", isValid);
+
                 if (isValid) {
-                    navigate(`/order-success?order_id=${response?.razorpay_order_id}`)
+                    navigate(
+                        `/order-success?order_id=${response.razorpay_order_id}`
+                    );
                 }
             },
 

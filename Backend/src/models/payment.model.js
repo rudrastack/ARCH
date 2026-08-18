@@ -14,7 +14,7 @@ const paymentSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ["pending", "success", "failed"],
+        enum: ["pending", "paid", "failed"],
         default: "pending"
     },
     razorpay: {
