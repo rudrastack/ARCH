@@ -8,12 +8,14 @@ export const useCart = () => {
     const error = useSelector((state) => state.cart.error);
 
 
-    async function handleAddToCart({ productId, variantId, quantity = 1 }) {
+    async function handleAddToCart({ productId, variantId, quantity = 1, selectedColor, selectedSize }) {
         try {
             const data = await addToCart({
                 productId,
                 variantId,
-                quantity
+                quantity,
+                selectedColor,
+                selectedSize
             });
 
             await handleGetCart();

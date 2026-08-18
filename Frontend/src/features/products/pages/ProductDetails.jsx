@@ -21,25 +21,26 @@ const t = {
 
 export default function ProductDetails() {
 
-    const { productId } = useParams();
     const navigate = useNavigate();
+    const { productId } = useParams();
+    const { handleLogout } = useAuth();
     const { handleGetProductById } = useProduct();
-    const { handleAddToCart, handleGetCart, error } = useCart();
     const user = useSelector(state => state.auth.user)
     const cartItems = useSelector(state => state.cart?.items)
-    const { handleLogout } = useAuth();
+    const { handleAddToCart, handleGetCart, error } = useCart();
 
-    const [product, setProduct] = useState(null);
-    const [activeThumb, setActiveThumb] = useState(0);
-    const [imgOpacity, setImgOpacity] = useState(1);
-    const [selectedVariant, setSelectedVariant] = useState(null);
-    const [selectedColor, setSelectedColor] = useState("");
-    const [selectedSize, setSelectedSize] = useState("");
     const [qty, setQty] = useState(1);
+    const [product, setProduct] = useState(null);
+    const [imgOpacity, setImgOpacity] = useState(1);
+    const [activeThumb, setActiveThumb] = useState(0);
     const [activeTab, setActiveTab] = useState("story");
-    const [cartFeedback, setCartFeedback] = useState(false);
-    const [notification, setNotification] = useState(null);
+    const [selectedSize, setSelectedSize] = useState("");
     const [showAccount, setShowAccount] = useState(false);
+    const [notification, setNotification] = useState(null);
+    const [selectedColor, setSelectedColor] = useState("");
+    const [cartFeedback, setCartFeedback] = useState(false);
+    const [selectedVariant, setSelectedVariant] = useState(null);
+
 
 
     const variants = product?.variants ?? [];
@@ -49,7 +50,9 @@ export default function ProductDetails() {
             await handleAddToCart({
                 productId: product?._id,
                 variantId: selectedVariant?._id,
-                quantity: qty
+                quantity: qty,
+                selectedColor,
+                selectedSize
             });
 
             // Show success notification
@@ -273,7 +276,7 @@ export default function ProductDetails() {
                 .star-filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20; }
             `}</style>
 
-            {/* ── NAV ── */}
+            {/*  NAV  */}
             <nav style={{ position: "fixed", top: 0, width: "100%", zIndex: 50, background: "rgba(249,249,249,0.88)", backdropFilter: "blur(12px)", borderBottom: `1px solid ${t.outlineVariant}`, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 64px", height: 72, boxSizing: "border-box" }}>
                 <a href="/" style={{ fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 700, color: t.primary, textDecoration: "none", letterSpacing: "-0.02em" }}>ARKS</a>
                 <div style={{ display: "flex", gap: 40 }}>
@@ -481,7 +484,7 @@ export default function ProductDetails() {
             </nav>
 
             <main style={{ paddingTop: 72 }}>
-                {/* ── HERO ── */}
+                {/*  HERO  */}
                 <section style={{ maxWidth: 1440, margin: "0 auto", padding: "80px 64px", display: "grid", gridTemplateColumns: "7fr 5fr", gap: 48, boxSizing: "border-box" }}>
 
                     {/* Gallery */}
@@ -809,7 +812,7 @@ export default function ProductDetails() {
                     </div>
                 </section>
 
-                {/* ── TABS ── */}
+                {/*  TABS  */}
                 <section style={{ background: "#ffffff", borderTop: `1px solid ${t.outlineVariant}`, borderBottom: `1px solid ${t.outlineVariant}` }}>
                     <div style={{ maxWidth: 1440, margin: "0 auto", padding: "64px 64px", boxSizing: "border-box" }}>
                         <div style={{ display: "flex", justifyContent: "center", gap: 64, marginBottom: 40, borderBottom: `1px solid ${t.outlineVariant}` }}>
@@ -857,7 +860,7 @@ export default function ProductDetails() {
                     </div>
                 </section>
 
-                {/* ── SELLER ── */}
+                {/*  SELLER  */}
                 <section style={{ maxWidth: 1440, margin: "0 auto", padding: "80px 64px", boxSizing: "border-box" }}>
                     <div style={{ background: t.surfaceContainerLow, padding: 64, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center" }}>
                         <div style={{ aspectRatio: "16/9", overflow: "hidden" }}>
@@ -872,7 +875,7 @@ export default function ProductDetails() {
                 </section>
             </main>
 
-            {/* ── FOOTER ── */}
+            {/*  FOOTER  */}
             <footer style={{ background: t.surface, borderTop: `1px solid ${t.outlineVariant}`, padding: "48px 64px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 24 }}>
                 <div>
                     <a href="/" style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, fontWeight: 700, color: t.primary, textDecoration: "none" }}>ARKS</a>

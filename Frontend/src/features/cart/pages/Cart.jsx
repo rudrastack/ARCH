@@ -108,15 +108,10 @@ export default function Cart() {
     };
 
     const getItemVariantDetails = (item) => {
-        const variant = getSelectedVariant(item);
-        if (!variant) return "Standard Edition";
-        const color = variant.attributes?.Color?.[0];
-        const size = variant.attributes?.Size?.[0];
-
-
-
         const details = [];
 
+        const color = item.selectedColor;
+        const size = item.selectedSize;
         if (color) details.push(`Color: ${color}`);
         if (size) details.push(`Size: ${size}`);
 

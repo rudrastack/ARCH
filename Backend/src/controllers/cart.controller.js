@@ -11,7 +11,7 @@ import { config } from "../config/config.js";
 export const addToCart = async (req, res) => {
 
     const { productId, variantId } = req.params
-    const { quantity = 1 } = req.body
+    const { quantity = 1, selectedColor, selectedSize } = req.body
 
     const product = await productModel.findOne({
         _id: productId,
@@ -30,7 +30,13 @@ export const addToCart = async (req, res) => {
     const cart = (await cartModel.findOne({ user: req.user._id })) ||
         (await cartModel.create({ user: req.user._id }))
 
-    const isProductAlreadyInCart = cart.items.some(item => item.product.toString() === productId && item.variant?.toString() === variantId)
+    const isProductAlreadyInCart = cart.items.some(
+        item =>
+            item.product.toString() === productId &&
+            item.variant?.toString() === variantId &&
+            item.selectedColor === selectedColor &&
+            item.selectedSize === selectedSize
+    )
 
     if (isProductAlreadyInCart) {
         const quantityInCart = cart.items.find(item => item.product.toString() === productId && item.variant?.toString() === variantId).quantity
@@ -63,6 +69,8 @@ export const addToCart = async (req, res) => {
     cart.items.push({
         product: productId,
         variant: variantId,
+        selectedColor,
+        selectedSize,
         quantity,
         price: product.price
     })
@@ -218,10 +226,10 @@ export async function createOrderController(req, res) {
 
     const payment = await PaymentModel.create({
         user: req.user._id,
-        
+
         razorpay: {
             orderId: order.id,
-        
+
         },
         price: {
             amount: cart.totalPrice,
@@ -269,14 +277,14 @@ export async function verifyPaymentController(req, res) {
         });
     }
 
- const isPaymentValid = validatePaymentVerification(
-    {
-        order_id: payment.razorpay.orderId,
-        payment_id: razorpay_payment_id
-    },
-    razorpay_signature,
-    config.RAZORPAY_KEY_SECRET
-);
+    const isPaymentValid = validatePaymentVerification(
+        {
+            order_id: payment.razorpay.orderId,
+            payment_id: razorpay_payment_id
+        },
+        razorpay_signature,
+        config.RAZORPAY_KEY_SECRET
+    );
 
     if (!isPaymentValid) {
         payment.status = "failed";

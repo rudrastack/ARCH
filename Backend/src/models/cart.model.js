@@ -18,7 +18,14 @@ const cartSchema = new mongoose.Schema(
                 variant: {
                     type: mongoose.Schema.Types.ObjectId,
                     ref: 'product.variants'
-                },
+                    },
+                    selectedColor: {
+                        type: String
+                    },
+
+                    selectedSize: {
+                        type: String
+                    },
                 quantity: {
                     type: Number,
                     default: 1,
