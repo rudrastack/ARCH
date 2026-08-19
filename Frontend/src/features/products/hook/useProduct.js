@@ -1,4 +1,5 @@
 import { CreateProduct, getSellerProducts, getAllProducts, getProductById, CreateProductVariants } from "../service/product.api"
+import { useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { setSellerProducts, setProducts } from "../state/product.slice";
 
@@ -7,32 +8,32 @@ export const useProduct = () => {
 
     const dispatch = useDispatch();
 
-    async function handleCreateProduct(formData) {
+    const handleCreateProduct = useCallback(async (formData) => {
         const data = await CreateProduct(formData)
         return data.products
-    }
+    }, [])
 
-    async function handleGetSellerProducts() {
+    const handleGetSellerProducts = useCallback(async () => {
         const data = await getSellerProducts()
         dispatch(setSellerProducts(data.products))
         return data.products
-    }
+    }, [dispatch])
 
-    async function handleGetAllProducts() {
+    const handleGetAllProducts = useCallback(async () => {
         const data = await getAllProducts()
         dispatch(setProducts(data.products))
         return data.products
-    }
+    }, [dispatch])
 
-    async function handleGetProductById(productId) {
+    const handleGetProductById = useCallback(async (productId) => {
         const data = await getProductById(productId)
         return data.product
-    }
+    }, [])
 
-    async function handleCreateProductVariants(productId, newProductVariant) {
+    const handleCreateProductVariants = useCallback(async (productId, newProductVariant) => {
         const data = await CreateProductVariants(productId, newProductVariant)
         return data.product
-    }
+    }, [])
 
     return {
         handleCreateProduct,
