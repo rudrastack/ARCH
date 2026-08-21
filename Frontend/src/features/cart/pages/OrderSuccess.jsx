@@ -101,8 +101,8 @@ export default function OrderSuccess() {
                                         Official Order Reference
                                     </span>
                                     <p
-                                        className="text-2xl sm:text-3xl font-medium text-[#745a27] tracking-wider"
-                                        style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                                        className="text-2xl sm:text-3xl font-medium text-[#745a27] tracking-wider [word-wrap:break-word] max-w-[14rem]"
+                                        style={{ fontFamily: "'Cormorant Garamond', serif", }}
                                     >
                                         #{orderId}
                                     </p>

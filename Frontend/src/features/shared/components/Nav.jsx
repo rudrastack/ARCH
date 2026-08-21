@@ -28,7 +28,7 @@ export default function Navbar() {
     // Close mobile nav on route change / resize
     useEffect(() => {
         const handleResize = () => {
-            if (window.innerWidth >= 768) setMobileOpen(false);
+            if (window.innerWidth >= 1024) setMobileOpen(false);
         };
         window.addEventListener("resize", handleResize);
         return () => window.removeEventListener("resize", handleResize);
@@ -48,13 +48,11 @@ export default function Navbar() {
     const navLinks = ["Collections", "New Arrivals", "Heritage", "Bespoke"];
 
     return (
-        <header className="fixed top-0 left-0 w-full z-50"
+        <header
+            className="fixed top-0 left-0 w-full z-50"
             style={{
-                background: "rgba(249,249,249,0.88)",
-                backdropFilter: "blur(12px)",
-                WebkitBackdropFilter: "blur(12px)",
-                borderBottom: "1px solid #c5c6cd",
-                fontFamily: "'Hanken Grotesk', sans-serif",
+                background: "#ffffff",
+                borderBottom: "1px solid #e5e5e5",
             }}
         >
             <nav
@@ -77,7 +75,7 @@ export default function Navbar() {
                 </a>
 
                 {/* DESKTOP LINKS */}
-                <div className="hidden md:flex items-center gap-8 lg:gap-10">
+                <div className="hidden lg:flex items-center gap-8 lg:gap-10">
                     {navLinks.map(l => (
                         <a
                             key={l}
@@ -208,7 +206,7 @@ export default function Navbar() {
 
                     {/* MOBILE HAMBURGER */}
                     <button
-                        className="flex md:hidden nav-icon-btn"
+                        className="flex lg:hidden nav-icon-btn"
                         onClick={() => setMobileOpen(o => !o)}
                         aria-label="Toggle navigation"
                         aria-expanded={mobileOpen}
@@ -221,7 +219,7 @@ export default function Navbar() {
             </nav>
 
             {/* MOBILE DRAWER */}
-            <div className={`arks-mobile-nav md:hidden ${mobileOpen ? "open" : ""}`}>
+            <div className={`arks-mobile-nav ${mobileOpen ? "open" : ""}`}>
                 {navLinks.map(l => (
                     <a
                         key={l}
@@ -257,24 +255,17 @@ export default function Navbar() {
                             Login
                         </button>
                     )}
-                    <button
-                        onClick={() => { setMobileOpen(false); navigate("/cart"); }}
-                        style={{
-                            background: "transparent",
-                            color: "#0a192f",
-                            border: "1px solid #0a192f",
-                            padding: "12px 0",
-                            borderRadius: 8,
-                            fontWeight: 600,
-                            fontSize: 14,
-                            cursor: "pointer",
-                        }}
-                    >
-                        View Cart {cartItems?.length > 0 ? `(${cartItems.length})` : ""}
-                    </button>
                     {user && (
                         <button
                             onClick={handleUserLogout}
+                            onMouseEnter={(e) => {
+                                e.currentTarget.style.background = "#d32f2f";
+                                e.currentTarget.style.color = "#fff";
+                            }}
+                            onMouseLeave={(e) => {
+                                e.currentTarget.style.background = "transparent";
+                                e.currentTarget.style.color = "#d32f2f";
+                            }}
                             style={{
                                 background: "transparent",
                                 color: "#d32f2f",
@@ -284,6 +275,7 @@ export default function Navbar() {
                                 fontWeight: 600,
                                 fontSize: 14,
                                 cursor: "pointer",
+                                transition: "all 0.2s ease",
                             }}
                         >
                             Logout

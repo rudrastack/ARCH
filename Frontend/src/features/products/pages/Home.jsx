@@ -62,7 +62,7 @@ export default function Home() {
         };
         loadProducts();
         return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // Lenis smooth scroll — initialize AFTER intro completes.
@@ -182,8 +182,8 @@ const IntroOverlay = React.memo(function IntroOverlay({ onComplete }) {
         )
             .to({}, { duration: 0.5 })
             .to(logoWrapperRef.current, { scale: 3.2, opacity: 0, duration: 1.0, ease: 'power3.inOut' })
-            .to(leftGateRef.current,  { xPercent: -100, duration: 1.1, ease: 'power4.inOut' }, '-=0.4')
-            .to(rightGateRef.current, { xPercent: 100,  duration: 1.1, ease: 'power4.inOut' }, '<');
+            .to(leftGateRef.current, { xPercent: -100, duration: 1.1, ease: 'power4.inOut' }, '-=0.4')
+            .to(rightGateRef.current, { xPercent: 100, duration: 1.1, ease: 'power4.inOut' }, '<');
 
         return () => {
             tl.kill();
@@ -368,11 +368,10 @@ const Navbar = React.memo(function Navbar({ visible, onAuthNavigate, user }) {
     return (
         <nav
             ref={navRef}
-            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-                scrolled
-                    ? 'bg-[#fbf9f6]/90 backdrop-blur-md border-b border-[#e4e2df] py-3 shadow-xs'
-                    : 'bg-transparent py-5'
-            }`}
+            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled
+                ? 'bg-[#fbf9f6]/90 backdrop-blur-md border-b border-[#e4e2df] py-3 shadow-xs'
+                : 'bg-transparent py-5'
+                }`}
             style={{ opacity: visible ? 1 : 0 }}
         >
             <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-12 flex items-center justify-between">
@@ -488,11 +487,11 @@ const HeroSection = React.memo(function HeroSection() {
                     muted
                     playsInline
                     preload="none"
-                    poster="/arks_hero_editorial.png"
+                    poster="./public/assets/hero.png"
                     className="absolute inset-0 w-full h-full object-cover object-center"
                     style={{ filter: 'contrast(1.05) brightness(0.95)' }}
                 >
-                    <source src="hero/Video 1 edit.mp4" type="video/mp4" />
+                    <source src="/assets/hero.mp4" type="video/mp4" />
                 </video>
 
                 <div className="absolute inset-0 bg-gradient-to-t from-[#1b1c1a]/75 via-transparent to-[#1b1c1a]/20" />
