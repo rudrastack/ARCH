@@ -10,6 +10,7 @@ import SellerProductDetails from "../features/products/pages/SellerProductDetail
 import Cart from "../features/cart/pages/Cart.jsx";
 import OrderSuccess from "../features/cart/pages/OrderSuccess.jsx";
 import Collection from "../features/products/pages/Collection.jsx";
+import AppLayout from "./AppLayout.jsx";
 
 
 export const routes = createBrowserRouter([
@@ -17,15 +18,7 @@ export const routes = createBrowserRouter([
         path: "/",
         element: <Home />,
     },
-    {
-        path: "/details/:productId",
-        element: <ProductDetails />,
-    },
 
-    {
-        path: "/cart",
-        element: <Cart />
-    },
     {
         path: "/register",
         element: <RegisterPage />
@@ -34,13 +27,29 @@ export const routes = createBrowserRouter([
         path: "/login",
         element: <LoginPage />
     },
+
+
     {
-        path: "/order-success",
-        element: <OrderSuccess />
-    },
-    {
-        path: "/collection",
-        element: <Collection />
+        element: <AppLayout />,
+        children: [
+            {
+                path: "/details/:productId",
+                element: <ProductDetails />,
+            },
+
+            {
+                path: "/cart",
+                element: <Cart />
+            },
+            {
+                path: "/order-success",
+                element: <OrderSuccess />
+            },
+            {
+                path: "/collection",
+                element: <Collection />
+            },
+        ]
     },
     {
         path: "/seller",

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useProduct } from "../hook/useProduct";
 import gsap from 'gsap';
@@ -7,65 +7,68 @@ import Lenis from '@studio-freight/lenis';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
-// Register GSAP Plugin
+// Register GSAP Plugin once at module level
 gsap.registerPlugin(ScrollTrigger);
-let isSpaNavigated = false;
 
+// ── Intro guard ─────────────────────────────────────────────────────
+// sessionStorage is the sole source of truth.
+// We do NOT use a module-level variable because it would survive HMR
+// but NOT a real browser reload — making behaviour inconsistent.
 function checkShouldShowIntro() {
     if (typeof window === 'undefined') return false;
     try {
-        const navEntries = performance.getEntriesByType?.('navigation');
-        const isReload = navEntries && navEntries.length > 0
-            ? navEntries[0].type === 'reload'
-            : (performance.navigation && performance.navigation.type === 1);
-        const hasSeenIntro = sessionStorage.getItem('arks_intro_seen');
-        if (isReload || (!hasSeenIntro && !isSpaNavigated)) {
-            return true;
-        }
-        return false;
+        // Show intro only if sessionStorage flag has NOT been set yet.
+        // A real page reload clears sessionStorage (unlike localStorage),
+        // so the animation runs again automatically on reload.
+        return !sessionStorage.getItem('arks_intro_seen');
     } catch (e) {
         return false;
     }
 }
 
-// 1. MAIN HOME PAGE ORCHESTRATION
+// ── Main orchestration ──────────────────────────────────────────────
 export default function Home() {
-
     const { handleGetAllProducts } = useProduct();
     const user = useSelector((state) => state.auth.user);
     const navigate = useNavigate();
 
     const [products, setProducts] = useState([]);
 
-    // Show intro only once per SPA session. Full reload resets this.
-    const [showIntro, setShowIntro] = useState(checkShouldShowIntro);
-
-
-    // Navbar visible when intro is not shown (SPA navigation back to home)
-    const [navVisible, setNavVisible] = useState(() => !checkShouldShowIntro());
+    // Initialise ONCE — never call checkShouldShowIntro again in the
+    // same component lifetime to avoid the double-evaluation bug.
+    const shouldShowIntro = useMemo(() => checkShouldShowIntro(), []);
+    const [showIntro, setShowIntro] = useState(shouldShowIntro);
+    const [navVisible, setNavVisible] = useState(!shouldShowIntro);
 
     const handleIntroComplete = useCallback(() => {
         try {
             sessionStorage.setItem('arks_intro_seen', 'true');
-            isSpaNavigated = true;
-        } catch (e) { }
+        } catch (e) { /* sessionStorage blocked (rare) */ }
         setNavVisible(true);
         setShowIntro(false);
     }, []);
 
+    // Fetch products — stable empty dep array; handleGetAllProducts is
+    // not memoized in the hook so we intentionally skip it as a dep.
     useEffect(() => {
+        let cancelled = false;
         const loadProducts = async () => {
             try {
                 const data = await handleGetAllProducts();
-                setProducts(data || []);
+                if (!cancelled) setProducts(data || []);
             } catch (err) {
                 console.error('Failed to load products:', err);
             }
         };
         loadProducts();
+        return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    // Initialize Lenis smooth scroll AFTER intro completes to avoid jank
+    // Lenis smooth scroll — initialize AFTER intro completes.
+    // FIXED: only use gsap.ticker for the RAF loop (not both
+    // requestAnimationFrame AND gsap.ticker, which was calling
+    // lenis.raf() twice per frame).
     useEffect(() => {
         if (showIntro) return;
 
@@ -76,22 +79,14 @@ export default function Home() {
             smoothWheel: true,
         });
 
-        let rafId;
-        function raf(time) {
-            lenis.raf(time);
-            rafId = requestAnimationFrame(raf);
-        }
-        rafId = requestAnimationFrame(raf);
-
         lenis.on('scroll', ScrollTrigger.update);
-        const tickerCb = (time) => {
-            lenis.raf(time * 1000);
-        };
+
+        // Use gsap.ticker as the single RAF source (avoids double lenis.raf())
+        const tickerCb = (time) => lenis.raf(time * 1000);
         gsap.ticker.add(tickerCb);
         gsap.ticker.lagSmoothing(0);
 
         return () => {
-            cancelAnimationFrame(rafId);
             gsap.ticker.remove(tickerCb);
             lenis.destroy();
         };
@@ -103,42 +98,38 @@ export default function Home() {
 
     return (
         <div className="arks-landing bg-[#fbf9f6] text-[#1b1c1a] min-h-screen selection:bg-[#C9A96E]/30 select-none">
-            {/* 1. Mouse Follower */}
+            {/* Mouse Follower — desktop only, zero cost on touch devices */}
             <MouseFollower />
 
-            {/* 2. Gate Opening Intro Overlay with Netflix-Style Zooming Logo */}
-            {showIntro ? (
-                <IntroOverlay
-                    onComplete={handleIntroComplete}
+            {/* Gate Opening Intro — shown only once per session */}
+            {showIntro && <IntroOverlay onComplete={handleIntroComplete} />}
 
-                />
-            ) : null}
-
-            {/* 3. Navigation Bar */}
+            {/* Navbar */}
             <Navbar visible={navVisible} onAuthNavigate={handleNavigateAuth} user={user} />
 
-            {/* 4. Hero Section with Video Loop 1 (Runway Fashion Catwalk) */}
+            {/* Hero Section */}
             <HeroSection />
 
-            {/* 5. Model Shoot Section with Video Loop 2 (Atelier Posing Motion) */}
+            {/* Atelier Model Shoot */}
             <ModelShootSection />
 
-            {/* 6. Featured Products Collection */}
+            {/* Featured Products */}
             <FeaturedCollection
                 products={products}
                 user={user}
                 onAuthNavigate={handleNavigateAuth}
             />
-            {/* 7. Editorial Quote Banner */}
+
+            {/* Editorial Quote Banner */}
             <EditorialBanner />
 
-            {/* 8. Footer */}
+            {/* Footer */}
             <Footer onAuthNavigate={handleNavigateAuth} />
         </div>
     );
 }
 
-// OFFICIAL ARKS ATTACHED LOGO COMPONENT
+// ── ARKS Logo ───────────────────────────────────────────────────────
 function ArksLogo({ variant = 'dark', className = '', size = 'md' }) {
     const sizeClasses = {
         sm: 'h-6 md:h-7',
@@ -161,7 +152,8 @@ function ArksLogo({ variant = 'dark', className = '', size = 'md' }) {
     );
 }
 
-// 2. INTRO OVERLAY (Netflix-Style Logo Zoom + Gate Opening)
+// ── INTRO OVERLAY ────────────────────────────────────────────────────
+// React.memo prevents any re-render once mounted.
 const IntroOverlay = React.memo(function IntroOverlay({ onComplete }) {
     const overlayRef = useRef(null);
     const leftGateRef = useRef(null);
@@ -173,13 +165,10 @@ const IntroOverlay = React.memo(function IntroOverlay({ onComplete }) {
 
         const tl = gsap.timeline({
             defaults: { force3D: true },
-
             onComplete: () => {
                 document.body.style.overflow = '';
                 if (overlayRef.current) {
                     overlayRef.current.style.pointerEvents = 'none';
-                    // hide for next renders without forcing a reflow
-                    overlayRef.current.style.opacity = '0';
                     overlayRef.current.style.display = 'none';
                 }
                 if (onComplete) onComplete();
@@ -192,30 +181,9 @@ const IntroOverlay = React.memo(function IntroOverlay({ onComplete }) {
             { opacity: 1, scale: 1, duration: 0.9, ease: 'power3.out' }
         )
             .to({}, { duration: 0.5 })
-            .to(logoWrapperRef.current, {
-                scale: 3.2,
-                opacity: 0,
-                duration: 1.0,
-                ease: 'power3.inOut',
-            })
-            .to(
-                leftGateRef.current,
-                {
-                    xPercent: -100,
-                    duration: 1.1,
-                    ease: 'power4.inOut',
-                },
-                '-=0.4'
-            )
-            .to(
-                rightGateRef.current,
-                {
-                    xPercent: 100,
-                    duration: 1.1,
-                    ease: 'power4.inOut',
-                },
-                '<'
-            );
+            .to(logoWrapperRef.current, { scale: 3.2, opacity: 0, duration: 1.0, ease: 'power3.inOut' })
+            .to(leftGateRef.current,  { xPercent: -100, duration: 1.1, ease: 'power4.inOut' }, '-=0.4')
+            .to(rightGateRef.current, { xPercent: 100,  duration: 1.1, ease: 'power4.inOut' }, '<');
 
         return () => {
             tl.kill();
@@ -227,20 +195,18 @@ const IntroOverlay = React.memo(function IntroOverlay({ onComplete }) {
         <div
             ref={overlayRef}
             className="fixed inset-0 z-[1000] flex pointer-events-auto select-none overflow-hidden"
-            style={{ perspective: '1200px', transform: 'translateZ(0)' }}
+            style={{ perspective: '1200px' }}
         >
             <div
                 ref={leftGateRef}
-                className="gate-panel w-1/2 h-full bg-[#1b1c1a] border-r border-[#C9A96E]/20 relative flex items-center justify-end pr-10"
-                style={{ willChange: 'transform', backfaceVisibility: 'hidden' }}
+                className="gate-panel w-1/2 h-full bg-[#1b1c1a] border-r border-[#C9A96E]/20 relative"
             >
                 <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]" />
             </div>
 
             <div
                 ref={rightGateRef}
-                className="gate-panel w-1/2 h-full bg-[#1b1c1a] border-l border-[#C9A96E]/20 relative flex items-center justify-start pl-10"
-                style={{ willChange: 'transform', backfaceVisibility: 'hidden' }}
+                className="gate-panel w-1/2 h-full bg-[#1b1c1a] border-l border-[#C9A96E]/20 relative"
             >
                 <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]" />
             </div>
@@ -249,7 +215,7 @@ const IntroOverlay = React.memo(function IntroOverlay({ onComplete }) {
                 <div
                     ref={logoWrapperRef}
                     className="text-center"
-                    style={{ opacity: 0, transformOrigin: 'center center', willChange: 'transform, opacity', transform: 'translateZ(0)' }}
+                    style={{ opacity: 0, transformOrigin: 'center center', willChange: 'transform, opacity' }}
                 >
                     <ArksLogo variant="light" size="xl" />
                     <p className="mt-4 text-[10px] uppercase tracking-[0.4em] text-[#C9A96E] font-medium">
@@ -259,93 +225,90 @@ const IntroOverlay = React.memo(function IntroOverlay({ onComplete }) {
             </div>
         </div>
     );
-})
+});
 
-// 3. MOUSE FOLLOWER
-function MouseFollower() {
+// ── MOUSE FOLLOWER ──────────────────────────────────────────────────
+// Only rendered on pointer:fine devices (desktop). No cost on mobile.
+const MouseFollower = React.memo(function MouseFollower() {
+    const isCoarsePointer =
+        typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches;
+
     const cursorRef = useRef(null);
     const cursorDotRef = useRef(null);
     const posRef = useRef({ x: 0, y: 0 });
     const targetRef = useRef({ x: 0, y: 0 });
 
     useEffect(() => {
-        if (window.matchMedia('(pointer: coarse)').matches) return;
+        if (isCoarsePointer) return; // bail on touch devices
+
+        let rafId;
+        let isAlive = true; // guard for unmounted component
 
         const handleMouseMove = (e) => {
             targetRef.current = { x: e.clientX, y: e.clientY };
         };
 
         const handleMouseEnter = () => {
-            if (cursorRef.current) {
-                gsap.to(cursorRef.current, { scale: 2.2, borderColor: '#C9A96E', duration: 0.3 });
-            }
+            if (cursorRef.current) gsap.to(cursorRef.current, { scale: 2.2, borderColor: '#C9A96E', duration: 0.3 });
         };
-
         const handleMouseLeave = () => {
-            if (cursorRef.current) {
-                gsap.to(cursorRef.current, { scale: 1, borderColor: 'rgba(27,28,26,0.4)', duration: 0.3 });
-            }
+            if (cursorRef.current) gsap.to(cursorRef.current, { scale: 1, borderColor: 'rgba(27,28,26,0.4)', duration: 0.3 });
         };
 
-        window.addEventListener('mousemove', handleMouseMove);
+        // Passive listener for performance
+        window.addEventListener('mousemove', handleMouseMove, { passive: true });
 
         const interactiveEls = document.querySelectorAll('a, button, input, video, [data-hover]');
-        interactiveEls.forEach((el) => {
+        interactiveEls.forEach(el => {
             el.addEventListener('mouseenter', handleMouseEnter);
             el.addEventListener('mouseleave', handleMouseLeave);
         });
 
         const animate = () => {
+            if (!isAlive) return;
             posRef.current.x += (targetRef.current.x - posRef.current.x) * 0.14;
             posRef.current.y += (targetRef.current.y - posRef.current.y) * 0.14;
             if (cursorRef.current) {
-                gsap.set(cursorRef.current, {
-                    x: posRef.current.x - 10,
-                    y: posRef.current.y - 10,
-                });
+                gsap.set(cursorRef.current, { x: posRef.current.x - 11, y: posRef.current.y - 11 });
             }
             if (cursorDotRef.current) {
-                gsap.set(cursorDotRef.current, {
-                    x: targetRef.current.x - 3,
-                    y: targetRef.current.y - 3,
-                });
+                gsap.set(cursorDotRef.current, { x: targetRef.current.x - 3, y: targetRef.current.y - 3 });
             }
-            requestAnimationFrame(animate);
+            rafId = requestAnimationFrame(animate);
         };
-        const rafId = requestAnimationFrame(animate);
+        rafId = requestAnimationFrame(animate);
 
         return () => {
+            isAlive = false;
+            cancelAnimationFrame(rafId);
             window.removeEventListener('mousemove', handleMouseMove);
-            interactiveEls.forEach((el) => {
+            interactiveEls.forEach(el => {
                 el.removeEventListener('mouseenter', handleMouseEnter);
                 el.removeEventListener('mouseleave', handleMouseLeave);
             });
-            cancelAnimationFrame(rafId);
         };
-    }, []);
+    }, [isCoarsePointer]);
 
-    if (typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches) {
-        return null;
-    }
+    if (isCoarsePointer) return null;
 
     return (
         <>
             <div
                 ref={cursorRef}
-                className="fixed top-0 left-0 pointer-events-none z-[9999] rounded-full border border-[#1b1c1a]/40 transition-colors duration-300"
-                style={{ width: 22, height: 22 }}
+                className="fixed top-0 left-0 pointer-events-none z-[9999] rounded-full border border-[#1b1c1a]/40"
+                style={{ width: 22, height: 22, willChange: 'transform' }}
             />
             <div
                 ref={cursorDotRef}
                 className="fixed top-0 left-0 pointer-events-none z-[9999] rounded-full bg-[#C9A96E]"
-                style={{ width: 6, height: 6 }}
+                style={{ width: 6, height: 6, willChange: 'transform' }}
             />
         </>
     );
-}
+});
 
-// 4. MAGNETIC BUTTON
-function MagneticButton({ children, className = '', onClick, type = 'button', disabled = false, ...props }) {
+// ── MAGNETIC BUTTON ─────────────────────────────────────────────────
+const MagneticButton = React.memo(function MagneticButton({ children, className = '', onClick, type = 'button', disabled = false, ...props }) {
     const btnRef = useRef(null);
 
     const handleMouseMove = useCallback((e) => {
@@ -353,22 +316,12 @@ function MagneticButton({ children, className = '', onClick, type = 'button', di
         const rect = btnRef.current.getBoundingClientRect();
         const x = e.clientX - rect.left - rect.width / 2;
         const y = e.clientY - rect.top - rect.height / 2;
-        gsap.to(btnRef.current, {
-            x: x * 0.25,
-            y: y * 0.25,
-            duration: 0.3,
-            ease: 'power2.out',
-        });
+        gsap.to(btnRef.current, { x: x * 0.25, y: y * 0.25, duration: 0.3, ease: 'power2.out' });
     }, []);
 
     const handleMouseLeave = useCallback(() => {
         if (!btnRef.current) return;
-        gsap.to(btnRef.current, {
-            x: 0,
-            y: 0,
-            duration: 0.5,
-            ease: 'elastic.out(1, 0.4)',
-        });
+        gsap.to(btnRef.current, { x: 0, y: 0, duration: 0.5, ease: 'elastic.out(1, 0.4)' });
     }, []);
 
     return (
@@ -386,10 +339,10 @@ function MagneticButton({ children, className = '', onClick, type = 'button', di
             {children}
         </button>
     );
-}
+});
 
-// 5. NAVBAR
-function Navbar({ visible, onAuthNavigate, user }) {
+// ── NAVBAR ───────────────────────────────────────────────────────────
+const Navbar = React.memo(function Navbar({ visible, onAuthNavigate, user }) {
     const navRef = useRef(null);
     const [scrolled, setScrolled] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
@@ -405,23 +358,24 @@ function Navbar({ visible, onAuthNavigate, user }) {
     }, [visible]);
 
     useEffect(() => {
-        const handleScroll = () => {
-            setScrolled(window.scrollY > 60);
-        };
-        window.addEventListener('scroll', handleScroll);
+        const handleScroll = () => setScrolled(window.scrollY > 60);
+        window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
+
+    const closeMenu = useCallback(() => setMenuOpen(false), []);
 
     return (
         <nav
             ref={navRef}
-            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled
-                ? 'bg-[#fbf9f6]/90 backdrop-blur-md border-b border-[#e4e2df] py-3 shadow-xs'
-                : 'bg-transparent py-5'
-                }`}
+            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+                scrolled
+                    ? 'bg-[#fbf9f6]/90 backdrop-blur-md border-b border-[#e4e2df] py-3 shadow-xs'
+                    : 'bg-transparent py-5'
+            }`}
             style={{ opacity: visible ? 1 : 0 }}
         >
-            <div className="max-w-[1440px] mx-auto px-6 md:px-12 flex items-center justify-between">
+            <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-12 flex items-center justify-between">
                 <a href="/" className="flex items-center space-x-3 group" data-hover>
                     <ArksLogo variant="dark" size="sm" />
                     <span className="text-[9px] uppercase tracking-[0.2em] text-[#C9A96E] font-medium border border-[#C9A96E]/30 px-2 py-0.5 hidden sm:inline-block ml-2">
@@ -430,7 +384,7 @@ function Navbar({ visible, onAuthNavigate, user }) {
                 </a>
 
                 <div className="hidden md:flex items-center space-x-10">
-                    {['Collections', 'Atelier Shoot', 'Ethos', 'About'].map((item) => (
+                    {['Collections', 'Atelier Shoot', 'Ethos', 'About'].map(item => (
                         <a
                             key={item}
                             href={`#${item.toLowerCase().replace(' ', '-')}`}
@@ -442,7 +396,7 @@ function Navbar({ visible, onAuthNavigate, user }) {
                     ))}
                 </div>
 
-                <div className="flex items-center space-x-5">
+                <div className="flex items-center space-x-3 sm:space-x-5">
                     {user ? (
                         <span className="text-[10px] uppercase tracking-[0.2em] text-[#C9A96E] font-semibold hidden sm:inline-block">
                             Welcome, {user.fullname?.split(' ')[0] || 'Member'}
@@ -457,20 +411,18 @@ function Navbar({ visible, onAuthNavigate, user }) {
                     )}
 
                     <MagneticButton
-                        onClick={() =>
-                            onAuthNavigate(
-                                user?.role === "seller" ? "/seller/get" : "/register"
-                            )
-                        }
-                        className="px-5 py-2.5 border border-[#1b1c1a] text-[10px] uppercase tracking-[0.22em] text-[#1b1c1a] font-medium hover:bg-[#1b1c1a] hover:text-[#fbf9f6] transition-all duration-300"
+                        onClick={() => onAuthNavigate(user?.role === "seller" ? "/seller/get" : "/register")}
+                        className="hidden sm:block px-5 py-2.5 border border-[#1b1c1a] text-[10px] uppercase tracking-[0.22em] text-[#1b1c1a] font-medium hover:bg-[#1b1c1a] hover:text-[#fbf9f6] transition-all duration-300"
                     >
                         {user?.role === "seller" ? "Seller Dashboard" : "Join Club"}
                     </MagneticButton>
 
+                    {/* Hamburger — mobile only */}
                     <button
                         data-hover
                         className="md:hidden text-[#1b1c1a] p-1"
-                        onClick={() => setMenuOpen(!menuOpen)}
+                        onClick={() => setMenuOpen(o => !o)}
+                        aria-label="Toggle menu"
                     >
                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
                             {menuOpen ? (
@@ -483,6 +435,7 @@ function Navbar({ visible, onAuthNavigate, user }) {
                 </div>
             </div>
 
+            {/* Mobile menu */}
             <AnimatePresence>
                 {menuOpen && (
                     <motion.div
@@ -491,28 +444,30 @@ function Navbar({ visible, onAuthNavigate, user }) {
                         exit={{ opacity: 0, height: 0 }}
                         className="md:hidden bg-[#fbf9f6] border-b border-[#e4e2df] px-6 py-8 space-y-6"
                     >
-                        {['Collections', 'Atelier Shoot', 'Ethos', 'About'].map((item) => (
+                        {['Collections', 'Atelier Shoot', 'Ethos', 'About'].map(item => (
                             <a
                                 key={item}
                                 href={`#${item.toLowerCase().replace(' ', '-')}`}
-                                onClick={() => setMenuOpen(false)}
+                                onClick={closeMenu}
                                 className="block text-xs uppercase tracking-[0.2em] text-[#1b1c1a] font-medium"
                             >
                                 {item}
                             </a>
                         ))}
                         <div className="pt-4 border-t border-[#e4e2df] flex flex-col gap-3">
+                            {!user && (
+                                <button
+                                    onClick={() => { closeMenu(); onAuthNavigate('/login'); }}
+                                    className="w-full py-3 bg-[#1b1c1a] text-[#fbf9f6] text-xs uppercase tracking-[0.2em] font-medium"
+                                >
+                                    Sign In
+                                </button>
+                            )}
                             <button
-                                onClick={() => { setMenuOpen(false); onAuthNavigate('/login'); }}
-                                className="w-full py-3 bg-[#1b1c1a] text-[#fbf9f6] text-xs uppercase tracking-[0.2em] font-medium"
-                            >
-                                Sign In
-                            </button>
-                            <button
-                                onClick={() => { setMenuOpen(false); onAuthNavigate('/register'); }}
+                                onClick={() => { closeMenu(); onAuthNavigate(user?.role === "seller" ? "/seller/get" : "/register"); }}
                                 className="w-full py-3 border border-[#1b1c1a] text-[#1b1c1a] text-xs uppercase tracking-[0.2em] font-medium"
                             >
-                                Join ARKS Club
+                                {user?.role === "seller" ? "Seller Dashboard" : "Join ARKS Club"}
                             </button>
                         </div>
                     </motion.div>
@@ -520,30 +475,29 @@ function Navbar({ visible, onAuthNavigate, user }) {
             </AnimatePresence>
         </nav>
     );
-}
+});
 
-// 6. HERO SECTION
-function HeroSection() {
+// ── HERO SECTION ────────────────────────────────────────────────────
+const HeroSection = React.memo(function HeroSection() {
     return (
-        <section className="relative min-h-screen bg-[#fbf9f6] flex flex-col justify-between pt-28 pb-12 px-6 md:px-12 lg:px-20 overflow-hidden">
-            <div className="relative w-full h-[55vh] md:h-[65vh] lg:h-[70vh] rounded-none overflow-hidden my-auto border border-[#e4e2df]">
+        <section className="relative min-h-screen bg-[#fbf9f6] flex flex-col justify-between pt-20 md:pt-28 pb-8 md:pb-12 px-4 sm:px-8 lg:px-20 overflow-hidden">
+            <div className="relative w-full h-[50vh] sm:h-[60vh] lg:h-[70vh] overflow-hidden border border-[#e4e2df]">
                 <video
                     autoPlay
                     loop
                     muted
                     playsInline
+                    preload="none"
                     poster="/arks_hero_editorial.png"
-                    className="absolute inset-0 w-full h-full object-cover object-center filter contrast-[1.05] brightness-[0.95]"
+                    className="absolute inset-0 w-full h-full object-cover object-center"
+                    style={{ filter: 'contrast(1.05) brightness(0.95)' }}
                 >
-                    <source
-                        src="hero/Video 1 edit.mp4"
-                        type="video/mp4"
-                    />
+                    <source src="hero/Video 1 edit.mp4" type="video/mp4" />
                 </video>
 
                 <div className="absolute inset-0 bg-gradient-to-t from-[#1b1c1a]/75 via-transparent to-[#1b1c1a]/20" />
 
-                <div className="absolute inset-0 p-8 md:p-14 flex flex-col justify-between z-10">
+                <div className="absolute inset-0 p-6 sm:p-10 md:p-14 flex flex-col justify-between z-10">
                     <div className="flex justify-between items-start">
                         <span className="text-[10px] uppercase tracking-[0.3em] text-[#C9A96E] font-medium border border-[#C9A96E]/40 px-3 py-1 bg-[#1b1c1a]/40 backdrop-blur-md">
                             SS/26 Collection
@@ -558,7 +512,7 @@ function HeroSection() {
                             ARKS Studio &bull; Limited Release
                         </p>
                         <h1
-                            className="text-4xl sm:text-6xl lg:text-7xl font-light leading-[1.05] tracking-wide"
+                            className="text-3xl sm:text-5xl lg:text-7xl font-light leading-[1.05] tracking-wide"
                             style={{ fontFamily: "'Cormorant Garamond', serif" }}
                         >
                             The Modern Expression of Heritage.
@@ -567,27 +521,24 @@ function HeroSection() {
                 </div>
             </div>
 
-            <div className="max-w-[1440px] mx-auto w-full flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pt-6 border-t border-[#e4e2df]">
+            <div className="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-5 border-t border-[#e4e2df]">
                 <p className="text-xs text-[#7A6E63] max-w-md font-light leading-relaxed tracking-wide">
                     Designed with restraint and executed with perfection. Explore curated footwear, apparel, and bespoke member drops.
                 </p>
-
                 <div className="flex items-center space-x-4">
-                    <span className="text-[9px] uppercase tracking-[0.3em] text-[#1b1c1a] font-semibold">
-                        Scroll to Explore
-                    </span>
+                    <span className="text-[9px] uppercase tracking-[0.3em] text-[#1b1c1a] font-semibold">Scroll to Explore</span>
                     <div className="w-8 h-[1px] bg-[#C9A96E]" />
                 </div>
             </div>
         </section>
     );
-}
+});
 
-// 7. ATELIER MODEL SHOOT SECTION
-function ModelShootSection() {
+// ── ATELIER MODEL SHOOT ──────────────────────────────────────────────
+const ModelShootSection = React.memo(function ModelShootSection() {
     return (
-        <section id="atelier-shoot" className="py-24 bg-[#f5f3f0] border-y border-[#e4e2df] px-6 md:px-12 lg:px-20">
-            <div className="max-w-[1440px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <section id="atelier-shoot" className="py-16 md:py-24 bg-[#f5f3f0] border-y border-[#e4e2df] px-4 sm:px-8 lg:px-20">
+            <div className="max-w-[1440px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
                 <motion.div
                     initial={{ opacity: 0, x: -30 }}
                     whileInView={{ opacity: 1, x: 0 }}
@@ -600,8 +551,10 @@ function ModelShootSection() {
                         loop
                         muted
                         playsInline
+                        preload="none"
                         poster="/arks_hero_editorial.png"
-                        className="w-full h-full object-cover filter contrast-[1.05] brightness-[0.95]"
+                        className="w-full h-full object-cover"
+                        style={{ filter: 'contrast(1.05) brightness(0.95)' }}
                     >
                         <source
                             src="https://assets.mixkit.co/videos/preview/mixkit-model-posing-in-a-black-outfit-41489-large.mp4"
@@ -613,10 +566,7 @@ function ModelShootSection() {
                         <span className="text-[9px] uppercase tracking-[0.25em] text-[#C9A96E] font-medium block mb-1">
                             Atelier Shoot &bull; Vol. I
                         </span>
-                        <p
-                            className="text-2xl font-light"
-                            style={{ fontFamily: "'Cormorant Garamond', serif" }}
-                        >
+                        <p className="text-2xl font-light" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
                             Silhouettes in Motion
                         </p>
                     </div>
@@ -634,7 +584,7 @@ function ModelShootSection() {
                             Atelier Craftsmanship
                         </span>
                         <h2
-                            className="text-4xl md:text-5xl font-light text-[#1b1c1a] leading-tight"
+                            className="text-3xl sm:text-4xl md:text-5xl font-light text-[#1b1c1a] leading-tight"
                             style={{ fontFamily: "'Cormorant Garamond', serif" }}
                         >
                             Behind the lens of ARKS Studio.
@@ -648,7 +598,10 @@ function ModelShootSection() {
                         <img
                             src="/arks_hero_editorial.png"
                             alt="Editorial Model Shoot"
-                            className="w-full h-full object-cover grayscale contrast-105"
+                            loading="lazy"
+                            decoding="async"
+                            className="w-full h-full object-cover grayscale"
+                            style={{ filter: 'grayscale(1) contrast(1.05)' }}
                         />
                         <div className="absolute bottom-3 right-3 bg-[#1b1c1a] text-[#fbf9f6] text-[9px] uppercase tracking-[0.2em] px-2.5 py-1">
                             Studio Shot
@@ -658,22 +611,22 @@ function ModelShootSection() {
             </div>
         </section>
     );
-}
+});
 
-// 8. FEATURED COLLECTION
-function FeaturedCollection({ products, onAuthNavigate }) {
-    const user = useSelector(state => state.auth.user);
+// ── FEATURED COLLECTION ──────────────────────────────────────────────
+// Receives user via props — no internal useSelector to avoid extra subscription.
+const FeaturedCollection = React.memo(function FeaturedCollection({ products, user, onAuthNavigate }) {
     const navigate = useNavigate();
 
     return (
-        <section id="collections" className="py-28 bg-[#fbf9f6] px-6 md:px-12 lg:px-20">
-            <div className="max-w-[1440px] mx-auto mb-16 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+        <section id="collections" className="py-16 md:py-28 bg-[#fbf9f6] px-4 sm:px-8 lg:px-20">
+            <div className="max-w-[1440px] mx-auto mb-10 md:mb-16 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
                 <div>
                     <span className="text-[10px] uppercase tracking-[0.3em] text-[#C9A96E] font-medium block mb-3">
                         Available Releases
                     </span>
                     <h2
-                        className="text-4xl md:text-6xl font-light text-[#1b1c1a]"
+                        className="text-3xl sm:text-5xl md:text-6xl font-light text-[#1b1c1a]"
                         style={{ fontFamily: "'Cormorant Garamond', serif" }}
                     >
                         Curated Essentials
@@ -681,10 +634,7 @@ function FeaturedCollection({ products, onAuthNavigate }) {
                 </div>
                 <MagneticButton
                     onClick={() => {
-                        if (!user) {
-                            onAuthNavigate("/register");
-                            return;
-                        }
+                        if (!user) { onAuthNavigate("/register"); return; }
                         navigate("/collection");
                     }}
                     className="px-8 py-3.5 border border-[#1b1c1a] text-[10px] uppercase tracking-[0.25em] text-[#1b1c1a] font-medium hover:bg-[#1b1c1a] hover:text-[#fbf9f6] transition-all duration-300"
@@ -693,22 +643,24 @@ function FeaturedCollection({ products, onAuthNavigate }) {
                 </MagneticButton>
             </div>
 
-            <div className="max-w-[1440px] mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                {(products && products.length > 0 ? products : []).map((product, i) => (
+            <div className="max-w-[1440px] mx-auto grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+                {(products.length > 0 ? products : []).map((product, i) => (
                     <motion.div
                         key={product._id || product.id || i}
                         onClick={() => navigate(`/details/${product._id}`)}
-                        className="group bg-[#fbf9f6] border border-[#e4e2df] p-4 cursor-pointer"
+                        className="group bg-[#fbf9f6] border border-[#e4e2df] p-3 sm:p-4 cursor-pointer"
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true, margin: '-50px' }}
-                        transition={{ duration: 0.6, delay: i * 0.1 }}
+                        transition={{ duration: 0.6, delay: Math.min(i * 0.1, 0.4) }}
                     >
-                        <div className="relative aspect-[3/4] overflow-hidden bg-[#f5f3f0] mb-4">
+                        <div className="relative aspect-[3/4] overflow-hidden bg-[#f5f3f0] mb-3 sm:mb-4">
                             {product.images && product.images[0] ? (
                                 <img
-                                    src={product.variants && product.variants[0] ? product.variants[0].images[0].url : product.images[0]}
+                                    src={product.variants?.[0]?.images?.[0]?.url || product.images[0]}
                                     alt={product.title}
+                                    loading="lazy"
+                                    decoding="async"
                                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                                 />
                             ) : (
@@ -716,7 +668,7 @@ function FeaturedCollection({ products, onAuthNavigate }) {
                                     No Image
                                 </div>
                             )}
-                            <div className="absolute top-3 right-3 bg-[#1b1c1a] text-[#fbf9f6] text-[9px] uppercase tracking-[0.15em] px-2 py-1">
+                            <div className="absolute top-2.5 right-2.5 bg-[#1b1c1a] text-[#fbf9f6] text-[9px] uppercase tracking-[0.15em] px-2 py-0.5">
                                 New
                             </div>
                         </div>
@@ -729,7 +681,9 @@ function FeaturedCollection({ products, onAuthNavigate }) {
                                 {product.title}
                             </h3>
                             <p className="text-[11px] text-[#7A6E63] font-light">
-                                {product.price?.currency ? `${product.price.currency} ${product.price.amount.toLocaleString()}` : 'Price on request'}
+                                {product.price?.currency
+                                    ? `${product.price.currency} ${product.price.amount?.toLocaleString()}`
+                                    : 'Price on request'}
                             </p>
                         </div>
                     </motion.div>
@@ -737,18 +691,18 @@ function FeaturedCollection({ products, onAuthNavigate }) {
             </div>
         </section>
     );
-}
+});
 
-// 9. EDITORIAL BANNER
-function EditorialBanner() {
+// ── EDITORIAL BANNER ─────────────────────────────────────────────────
+const EditorialBanner = React.memo(function EditorialBanner() {
     return (
-        <section id="ethos" className="py-24 bg-[#1b1c1a] text-[#fbf9f6] px-6 md:px-12 lg:px-20 relative overflow-hidden">
+        <section id="ethos" className="py-20 md:py-24 bg-[#1b1c1a] text-[#fbf9f6] px-4 sm:px-8 lg:px-20 relative overflow-hidden">
             <div className="max-w-[1000px] mx-auto text-center space-y-6 relative z-10">
                 <span className="text-[10px] uppercase tracking-[0.35em] text-[#C9A96E] font-medium block">
                     Our Philosophy
                 </span>
                 <h2
-                    className="text-3xl md:text-5xl font-light leading-snug"
+                    className="text-2xl sm:text-3xl md:text-5xl font-light leading-snug"
                     style={{ fontFamily: "'Cormorant Garamond', serif" }}
                 >
                     &ldquo;Luxury is not about abundance, but the elimination of noise until only pure form remains.&rdquo;
@@ -759,14 +713,14 @@ function EditorialBanner() {
             </div>
         </section>
     );
-}
+});
 
-// 10. FOOTER
-function Footer({ onAuthNavigate }) {
+// ── FOOTER ────────────────────────────────────────────────────────────
+const Footer = React.memo(function Footer({ onAuthNavigate }) {
     return (
-        <footer id="about" className="bg-[#f5f3f0] border-t border-[#e4e2df] pt-16 pb-12 px-6 md:px-12 lg:px-20">
-            <div className="max-w-[1440px] mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 mb-16">
-                <div className="space-y-4 md:col-span-1">
+        <footer id="about" className="bg-[#f5f3f0] border-t border-[#e4e2df] pt-12 md:pt-16 pb-10 md:pb-12 px-4 sm:px-8 lg:px-20">
+            <div className="max-w-[1440px] mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-10 mb-12 md:mb-16">
+                <div className="space-y-4 col-span-2 md:col-span-1">
                     <ArksLogo variant="dark" size="md" />
                     <p className="text-xs text-[#7A6E63] leading-relaxed font-light">
                         Haute couture, footwear, and curated objects designed for members of refined taste.
@@ -808,5 +762,4 @@ function Footer({ onAuthNavigate }) {
             </div>
         </footer>
     );
-}
-
+});

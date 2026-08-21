@@ -116,3 +116,13 @@ export async function createProductVariant(req, res) {
 
 }
 
+export async function DeleteProduct(req, res) {
+    const { id } = req.params;
+    const product = await ProductModel.findByIdAndDelete(id);
+    res.status(200).json({
+        message: "Product deleted successfully",
+        success: true,
+        product
+    });
+}
+

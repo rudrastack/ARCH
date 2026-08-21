@@ -3,6 +3,7 @@ import { CreateProductValidator } from '../validation/product.validator.js';
 import { authenticateSeller } from '../middleware/auth.middleware.js';
 import { CreateProduct, GetProducts, GetAllProducts, GetProductDetails, createProductVariant } from '../controllers/product.controller.js';
 import ProductModel from '../models/product.model.js';
+import { DeleteProduct } from '../controllers/product.controller.js';
 import multer from 'multer';
 
 const upload = multer({
@@ -48,5 +49,12 @@ router.get('/details/:id', GetProductDetails)
  * @access Private (Seller only)
  */
 router.post('/seller/variants/:productId', authenticateSeller, upload.array('images', 7), createProductVariant);
+
+/**
+ * @route DELETE /api/products/seller/delete/:id
+ * @description Delete a product by ID
+ * @access Private (Seller only)
+ */
+router.delete('/seller/delete/:id', authenticateSeller, DeleteProduct);
 
 export default router;

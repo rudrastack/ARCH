@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useProduct } from '../hook/useProduct';
 
-/*  Design Tokens — Variant Manager (Stitch: Warm Minimalist Editorial)  */
+/*  Design Tokens — Variant Manager (Warm Minimalist Editorial)  */
 const c = {
     bg: '#fbf9f6',
     surface: '#ffffff',
@@ -47,46 +47,25 @@ const IcCheck = () => (
     </svg>
 );
 const IcPackage = () => (
-    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke={c.outlineVariant} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#d0c5b5" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
         <line x1="16.5" y1="9.4" x2="7.5" y2="4.21" /><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><polyline points="3.27 6.96 12 12.01 20.73 6.96" /><line x1="12" y1="22.08" x2="12" y2="12" />
     </svg>
 );
 
-/*  Shared styles  */
-const inputBase = {
-    width: '100%',
-    background: 'transparent',
-    border: 'none',
-    borderBottom: `1px solid ${c.outlineVariant}`,
-    padding: '8px 2px',
-    fontSize: 14,
-    fontFamily: 'Inter, sans-serif',
-    color: c.onSurface,
-    outline: 'none',
-    transition: 'border-color 0.2s',
-    boxSizing: 'border-box',
-};
-
-const labelBase = {
-    display: 'block',
-    fontSize: 11,
-    fontWeight: 600,
-    letterSpacing: '0.07em',
-    textTransform: 'uppercase',
-    color: c.onSurfaceVariant,
-    marginBottom: 6,
-    fontFamily: 'Inter, sans-serif',
-};
-
 /*  Toast Notification  */
 function Toast({ msg, type, onClose }) {
-    useEffect(() => { const t = setTimeout(onClose, 3000); return () => clearTimeout(t); }, []);
+    useEffect(() => {
+        const t = setTimeout(onClose, 3000);
+        return () => clearTimeout(t);
+    }, [onClose]);
+
     const bg = type === 'error' ? c.errorContainer : c.primaryFixed;
     const col = type === 'error' ? c.error : c.primaryDark;
+
     return (
-        <div style={{ position: 'fixed', bottom: 32, right: 32, zIndex: 200, background: bg, color: col, borderRadius: 8, padding: '14px 20px', fontSize: 13, fontFamily: 'Inter, sans-serif', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 10, boxShadow: '0 8px 32px rgba(116,90,39,0.12)', maxWidth: 360 }}>
+        <div className="fixed bottom-6 right-6 z-50 rounded-lg px-5 py-3.5 text-xs font-medium flex items-center gap-2.5 shadow-lg max-w-[90vw] sm:max-w-sm transition-all" style={{ background: bg, color: col }}>
             {type !== 'error' && <IcCheck />}
-            {msg}
+            <span className="leading-snug">{msg}</span>
         </div>
     );
 }
@@ -94,66 +73,82 @@ function Toast({ msg, type, onClose }) {
 /*  Variant Card  */
 function VariantCard({ variant, index, onStockChange }) {
     const [focused, setFocused] = useState(false);
-    const thumbSrc = variant.images?.[0]?.url || null;
+    const thumbSrc = variant.images?.[0]?.url || (typeof variant.images?.[0] === 'string' ? variant.images[0] : null);
     const attrs = Object.entries(variant.attributes || {});
     const hasPrice = variant.price?.amount != null && variant.price.amount !== '';
 
     return (
-        <div style={{ background: c.surface, borderRadius: 8, overflow: 'hidden', boxShadow: '0 4px 24px rgba(116,90,39,0.06)', display: 'flex', flexDirection: 'column', border: `1px solid ${c.surfaceContainerLow}` }}>
+        <div className="bg-white rounded-xl overflow-hidden shadow-xs border border-[#e4e2df] flex flex-col transition-all duration-200 hover:shadow-md">
             {/* Image strip */}
-            <div style={{ height: 160, background: c.surfaceContainerLow, position: 'relative', overflow: 'hidden' }}>
-                {thumbSrc
-                    ? <img src={thumbSrc} alt="Variant" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                    : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 8 }}>
+            <div className="h-44 sm:h-48 bg-[#f5f3f0] relative overflow-hidden">
+                {thumbSrc ? (
+                    <img
+                        src={thumbSrc}
+                        alt="Variant"
+                        loading="lazy"
+                        className="w-full h-full object-cover"
+                    />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center flex-col gap-2">
                         <IcPackage />
-                        <span style={{ fontSize: 11, color: c.outlineVariant, fontFamily: 'Inter, sans-serif' }}>No Image</span>
+                        <span className="text-[11px] text-[#7A6E63] font-medium">No Image Attached</span>
                     </div>
-                }
+                )}
                 {/* Image count badge */}
                 {variant.images?.length > 1 && (
-                    <span style={{ position: 'absolute', bottom: 8, right: 8, background: 'rgba(27,28,26,0.65)', color: '#fff', borderRadius: 20, padding: '2px 8px', fontSize: 10, fontFamily: 'Inter, sans-serif', fontWeight: 600 }}>
-                        +{variant.images.length - 1}
+                    <span className="absolute bottom-2.5 right-2.5 bg-[#1b1c1a]/75 backdrop-blur-xs text-white rounded-full px-2.5 py-0.5 text-[10px] font-semibold">
+                        +{variant.images.length - 1} photos
                     </span>
                 )}
             </div>
 
             {/* Body */}
-            <div style={{ padding: '16px 18px', flex: 1, display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between gap-3">
                 {/* Attribute tags */}
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                <div className="flex flex-wrap gap-1.5">
                     {attrs.length > 0 ? attrs.map(([key, val]) => (
-                        <span key={key} style={{ background: c.surfaceContainerLow, borderRadius: 4, padding: '3px 9px', fontSize: 11, fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase', color: c.onSurface, fontFamily: 'Inter, sans-serif', border: `1px solid ${c.outlineVariant}` }}>
-                            <span style={{ color: c.outline, fontWeight: 400 }}>{key}: </span>{val}
+                        <span
+                            key={key}
+                            className="bg-[#f5f3f0] rounded-md px-2.5 py-1 text-[10px] font-semibold tracking-wider uppercase text-[#1b1c1a] border border-[#e4e2df]"
+                        >
+                            <span className="text-[#7A6E63] font-normal">{key}: </span>{Array.isArray(val) ? val.join(", ") : val}
                         </span>
                     )) : (
-                        <span style={{ fontSize: 12, color: c.outlineVariant, fontFamily: 'Inter, sans-serif' }}>No attributes</span>
+                        <span className="text-xs text-[#7A6E63] italic">No specific attributes</span>
                     )}
                 </div>
 
-                {/* Price */}
-                <div style={{ fontSize: 13, color: c.onSurfaceVariant, fontFamily: 'Inter, sans-serif' }}>
+                {/* Price Display */}
+                <div className="text-xs text-[#7A6E63]">
                     {hasPrice ? (
-                        <span style={{ fontWeight: 600, color: c.primaryDark, fontSize: 15 }}>
-                            {variant.price.amount} {variant.price.currency || 'INR'}
+                        <span className="font-semibold text-[#745a27] text-sm sm:text-base">
+                            {variant.price.currency || 'INR'} {Number(variant.price.amount).toLocaleString('en-IN')}
                         </span>
                     ) : (
-                        <span style={{ fontStyle: 'italic', color: c.outlineVariant }}>Base price</span>
+                        <span className="italic text-[#7A6E63]">Using base product price</span>
                     )}
                 </div>
             </div>
 
-            {/* Stock row */}
-            <div style={{ padding: '12px 18px', borderTop: `1px solid ${c.surfaceContainerLow}`, background: c.bg, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span style={{ ...labelBase, marginBottom: 0 }}>Stock</span>
-                <input
-                    type="number"
-                    min="0"
-                    value={variant.stock ?? 0}
-                    onChange={e => onStockChange(index, e.target.value)}
-                    onFocus={() => setFocused(true)}
-                    onBlur={() => setFocused(false)}
-                    style={{ width: 80, textAlign: 'right', fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 600, color: c.onSurface, background: 'transparent', border: 'none', borderBottom: `1.5px solid ${focused ? c.primary : c.outlineVariant}`, outline: 'none', padding: '2px 4px', transition: 'border-color 0.2s' }}
-                />
+            {/* Stock edit row */}
+            <div className="p-3 sm:p-4 border-t border-[#f5f3f0] bg-[#fbf9f6] flex items-center justify-between">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#7A6E63]">
+                    Available Stock
+                </span>
+                <div className="flex items-center gap-1.5">
+                    <input
+                        type="number"
+                        min="0"
+                        value={variant.stock ?? 0}
+                        onChange={e => onStockChange(index, e.target.value)}
+                        onFocus={() => setFocused(true)}
+                        onBlur={() => setFocused(false)}
+                        className={`w-20 text-right font-medium text-base text-[#1b1c1a] bg-transparent border-b outline-none px-1 py-0.5 transition-colors ${focused ? "border-[#745a27]" : "border-[#d0c5b5]"
+                            }`}
+                        style={{ fontFamily: "'Cormorant Garamond', serif", fontSize: 18 }}
+                    />
+                    <span className="text-[10px] text-[#7A6E63]">units</span>
+                </div>
             </div>
         </div>
     );
@@ -163,19 +158,20 @@ function VariantCard({ variant, index, onStockChange }) {
 function VariantFormPanel({ onClose, onSave, saving }) {
     const fileInputRef = useRef(null);
     const [attrInputs, setAttrInputs] = useState([{ key: '', value: '' }]);
-    const [stock, setStock] = useState('0');
+    const [stock, setStock] = useState('10');
     const [priceAmount, setPriceAmount] = useState('');
     const [priceCurrency, setPriceCurrency] = useState('INR');
     const [images, setImages] = useState([]);
     const [error, setError] = useState('');
-    const [focusedAttr, setFocusedAttr] = useState(null);
 
     function handleAttrChange(idx, field, val) {
         const updated = attrInputs.map((a, i) => i === idx ? { ...a, [field]: val } : a);
         setAttrInputs(updated);
     }
 
-    function addAttr() { setAttrInputs(p => [...p, { key: '', value: '' }]); }
+    function addAttr() {
+        setAttrInputs(p => [...p, { key: '', value: '' }]);
+    }
 
     function removeAttr(idx) {
         if (attrInputs.length === 1) return;
@@ -186,7 +182,10 @@ function VariantFormPanel({ onClose, onSave, saving }) {
         const files = Array.from(e.target.files);
         if (!files.length) return;
         const slots = 7 - images.length;
-        const toAdd = files.slice(0, slots).map(f => ({ file: f, previewUrl: URL.createObjectURL(f) }));
+        const toAdd = files.slice(0, slots).map(f => ({
+            file: f,
+            previewUrl: URL.createObjectURL(f)
+        }));
         setImages(p => [...p, ...toAdd]);
         e.target.value = '';
     }
@@ -198,14 +197,21 @@ function VariantFormPanel({ onClose, onSave, saving }) {
 
     function buildAttrsObj() {
         const obj = {};
-        attrInputs.forEach(a => { if (a.key.trim()) obj[a.key.trim()] = a.value; });
+        attrInputs.forEach(a => {
+            if (a.key.trim()) {
+                obj[a.key.trim()] = a.value.trim();
+            }
+        });
         return obj;
     }
 
     function handleSubmit() {
         setError('');
         const hasAttr = attrInputs.some(a => a.key.trim() && a.value.trim());
-        if (!hasAttr) { setError('Please fill at least one attribute (e.g. Color: Red).'); return; }
+        if (!hasAttr) {
+            setError('Please provide at least one attribute key & value (e.g. Color: Black or Size: M).');
+            return;
+        }
 
         const variantPayload = {
             images: images.map(i => i.file),
@@ -213,103 +219,141 @@ function VariantFormPanel({ onClose, onSave, saving }) {
             attributes: buildAttrsObj(),
             price: priceAmount ? Number(priceAmount) : undefined,
         };
+
         onSave(variantPayload, images.map(i => ({ url: i.previewUrl })));
     }
 
     return (
-        /* Overlay */
-        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', justifyContent: 'flex-end' }}>
-            {/* Backdrop */}
-            <div onClick={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(27,28,26,0.35)', backdropFilter: 'blur(2px)', cursor: 'pointer' }} />
 
-            {/* Panel */}
-            <div style={{ position: 'relative', width: '100%', maxWidth: 520, height: '100%', background: c.surface, overflowY: 'auto', boxShadow: '-8px 0 48px rgba(116,90,39,0.1)', display: 'flex', flexDirection: 'column' }}>
-                {/* Panel Header */}
-                <div style={{ padding: '24px 32px', borderBottom: `1px solid ${c.surfaceContainerLow}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, background: c.surface, zIndex: 1 }}>
+        <div className="fixed inset-0 z-50 flex justify-end">
+            {/* Backdrop */}
+            <div
+                onClick={onClose}
+                className="fixed inset-0 bg-[#1b1c1a]/50 backdrop-blur-xs transition-opacity"
+            />
+
+            {/* Slide-over panel */}
+            <div className="relative w-full max-w-full sm:max-w-lg h-full bg-white shadow-2xl flex flex-col z-10 overflow-y-auto">
+                {/* Header */}
+                <div className="p-6 sm:p-8 border-b border-[#e4e2df] flex items-center justify-between sticky top-0 bg-white z-10">
                     <div>
-                        <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 600, color: c.onSurface, margin: 0 }}>Create Variant</h2>
-                        <p style={{ fontSize: 12, color: c.onSurfaceVariant, fontFamily: 'Inter, sans-serif', margin: '4px 0 0' }}>Add a new product variant with custom attributes</p>
+                        <h2
+                            className="text-2xl font-light text-[#0a192f]"
+                            style={{ fontFamily: "'Inter', sans-serif" }}
+                        >
+                            Create Bespoke Variant
+                        </h2>
+                        <p className="text-xs text-[#7A6E63] mt-1">
+                            Configure color, sizing attributes, stock & custom pricing
+                        </p>
                     </div>
-                    <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.onSurfaceVariant, fontSize: 22, lineHeight: 1, display: 'flex', padding: 4 }}>×</button>
+                    <button
+                        onClick={onClose}
+                        className="p-2 text-[#7A6E63] hover:text-[#1b1c1a] rounded-full hover:bg-[#f5f3f0] transition-colors"
+                        aria-label="Close panel"
+                    >
+                        <span className="material-symbols-outlined text-xl">close</span>
+                    </button>
                 </div>
 
-                <div style={{ padding: '28px 32px', flex: 1, display: 'flex', flexDirection: 'column', gap: 28 }}>
-                    {/* Error */}
+                {/* Form Body */}
+                <div className="p-6 sm:p-8 flex-1 space-y-6">
+                    {/* Error Banner */}
                     {error && (
-                        <div style={{ background: c.errorContainer, color: c.error, borderRadius: 6, padding: '10px 14px', fontSize: 13, fontFamily: 'Inter, sans-serif' }}>
+                        <div className="bg-red-50 border border-red-200 text-red-700 rounded-lg p-3.5 text-xs">
                             {error}
                         </div>
                     )}
 
-                    {/* Attributes */}
+                    {/* Attributes Section */}
                     <div>
-                        <label style={labelBase}>Attributes <span style={{ color: c.error }}>*</span></label>
-                        <p style={{ fontSize: 12, color: c.outlineVariant, fontFamily: 'Inter, sans-serif', marginBottom: 14, marginTop: -2 }}>e.g. Color → Red, Size → S, M, L... etc</p>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                        <label className="block text-[11px] font-semibold tracking-wider uppercase text-[#7A6E63] mb-1">
+                            Attributes & Specifications <span className="text-red-600">*</span>
+                        </label>
+                        <p className="text-[11px] text-[#7A6E63] mb-3">
+                            e.g., Color → Obsidian Black, Size → XL, Fabric → Cashmere
+                        </p>
+
+                        <div className="space-y-3">
                             {attrInputs.map((attr, idx) => (
-                                <div key={idx} style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                                <div key={idx} className="flex gap-2 sm:gap-3 items-center">
                                     <input
+                                        type="text"
                                         placeholder="Key (e.g. Color)"
                                         value={attr.key}
                                         onChange={e => handleAttrChange(idx, 'key', e.target.value)}
-                                        onFocus={() => setFocusedAttr(`${idx}-key`)}
-                                        onBlur={() => setFocusedAttr(null)}
-                                        style={{ ...inputBase, flex: 1, borderBottomColor: focusedAttr === `${idx}-key` ? c.primary : c.outlineVariant }}
+                                        className="flex-1 bg-transparent border-b border-[#d0c5b5] focus:border-[#745a27] py-2 text-xs text-[#1b1c1a] outline-none transition-colors"
                                     />
                                     <input
-                                        placeholder="Value (e.g. Red)"
+                                        type="text"
+                                        placeholder="Value (e.g. Ivory Gold)"
                                         value={attr.value}
                                         onChange={e => handleAttrChange(idx, 'value', e.target.value)}
-                                        onFocus={() => setFocusedAttr(`${idx}-val`)}
-                                        onBlur={() => setFocusedAttr(null)}
-                                        style={{ ...inputBase, flex: 1, borderBottomColor: focusedAttr === `${idx}-val` ? c.primary : c.outlineVariant }}
+                                        className="flex-1 bg-transparent border-b border-[#d0c5b5] focus:border-[#745a27] py-2 text-xs text-[#1b1c1a] outline-none transition-colors"
                                     />
                                     <button
+                                        type="button"
                                         onClick={() => removeAttr(idx)}
                                         disabled={attrInputs.length === 1}
-                                        style={{ background: 'none', border: 'none', cursor: attrInputs.length === 1 ? 'default' : 'pointer', color: attrInputs.length === 1 ? c.outlineVariant : c.error, padding: 4, display: 'flex', flexShrink: 0 }}
-                                    ><IcTrash /></button>
+                                        className={`p-2 text-sm rounded ${attrInputs.length === 1
+                                            ? "text-[#d0c5b5] cursor-not-allowed"
+                                            : "text-red-600 hover:bg-red-50"
+                                            }`}
+                                    >
+                                        <IcTrash />
+                                    </button>
                                 </div>
                             ))}
                         </div>
+
                         <button
+                            type="button"
                             onClick={addAttr}
-                            style={{ marginTop: 12, background: 'none', border: 'none', cursor: 'pointer', color: c.primary, fontFamily: 'Inter, sans-serif', fontSize: 12, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: 6, padding: 0 }}
+                            className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-[#745a27] hover:text-[#5a4311] transition-colors"
                         >
-                            <IcPlus /> Add Attribute
+                            <IcPlus /> Add Specification Field
                         </button>
                     </div>
 
-                    {/* Stock & Price */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+                    {/* Stock & Price Fields */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 pt-4 border-t border-[#e4e2df]">
                         <div>
-                            <label style={labelBase}>Stock</label>
+                            <label className="block text-[11px] font-semibold tracking-wider uppercase text-[#7A6E63] mb-1">
+                                Variant Stock
+                            </label>
                             <input
-                                type="number" min="0"
+                                type="number"
+                                min="0"
                                 value={stock}
                                 onChange={e => setStock(e.target.value)}
-                                style={{ ...inputBase }}
+                                className="w-full bg-transparent border-b border-[#d0c5b5] focus:border-[#745a27] py-2 text-sm text-[#1b1c1a] outline-none transition-colors"
                             />
                         </div>
+
                         <div>
-                            <label style={labelBase}>Price Amount <span style={{ color: c.outlineVariant, fontWeight: 400, textTransform: 'none' }}>(optional)</span></label>
+                            <label className="block text-[11px] font-semibold tracking-wider uppercase text-[#7A6E63] mb-1">
+                                Custom Price <span className="text-[#7A6E63] font-normal normal-case">(optional)</span>
+                            </label>
                             <input
-                                type="number" min="0"
-                                placeholder="Leave blank for base price"
+                                type="number"
+                                min="0"
+                                placeholder="Base product price"
                                 value={priceAmount}
                                 onChange={e => setPriceAmount(e.target.value)}
-                                style={{ ...inputBase }}
+                                className="w-full bg-transparent border-b border-[#d0c5b5] focus:border-[#745a27] py-2 text-sm text-[#1b1c1a] outline-none transition-colors"
                             />
                         </div>
                     </div>
 
-                    {/* Currency */}
-                    <div style={{ marginTop: -16 }}>
-                        <label style={labelBase}>Currency</label>
+                    {/* Currency Selector */}
+                    <div>
+                        <label className="block text-[11px] font-semibold tracking-wider uppercase text-[#7A6E63] mb-1">
+                            Currency
+                        </label>
                         <select
                             value={priceCurrency}
                             onChange={e => setPriceCurrency(e.target.value)}
-                            style={{ ...inputBase, cursor: 'pointer' }}
+                            className="w-full bg-transparent border-b border-[#d0c5b5] focus:border-[#745a27] py-2 text-xs text-[#1b1c1a] outline-none cursor-pointer"
                         >
                             {['INR', 'USD', 'EUR', 'GBP', 'AED'].map(cur => (
                                 <option key={cur} value={cur}>{cur}</option>
@@ -317,59 +361,88 @@ function VariantFormPanel({ onClose, onSave, saving }) {
                         </select>
                     </div>
 
-                    {/* Image Upload */}
-                    <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 12 }}>
-                            <label style={{ ...labelBase, marginBottom: 0 }}>Variant Images <span style={{ color: c.outlineVariant, fontWeight: 400, textTransform: 'none' }}>(max 7)</span></label>
-                            <span style={{ fontSize: 12, color: c.onSurfaceVariant, fontFamily: 'Inter, sans-serif' }}>{images.length}/7</span>
+                    {/* Image Upload Area */}
+                    <div className="pt-4 border-t border-[#e4e2df]">
+                        <div className="flex justify-between items-center mb-3">
+                            <label className="text-[11px] font-semibold tracking-wider uppercase text-[#7A6E63]">
+                                Variant Photos <span className="text-[#7A6E63] font-normal normal-case">(max 7)</span>
+                            </label>
+                            <span className="text-xs text-[#7A6E63] font-medium">{images.length}/7</span>
                         </div>
 
-                        {/* Image previews */}
+                        {/* Image Previews */}
                         {images.length > 0 && (
-                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, marginBottom: 12 }}>
+                            <div className="grid grid-cols-3 gap-3 mb-4">
                                 {images.map((img, i) => (
-                                    <div key={i} style={{ aspectRatio: '3/4', background: c.surfaceContainerLow, borderRadius: 4, overflow: 'hidden', position: 'relative' }}>
-                                        <img src={img.previewUrl} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                    <div key={i} className="aspect-[3/4] bg-[#f5f3f0] rounded-lg overflow-hidden relative border border-[#e4e2df]">
+                                        <img
+                                            src={img.previewUrl}
+                                            alt="Preview"
+                                            className="w-full h-full object-cover"
+                                        />
                                         <button
+                                            type="button"
                                             onClick={() => removeImage(i)}
-                                            style={{ position: 'absolute', top: 4, right: 4, background: 'rgba(255,255,255,0.9)', border: 'none', borderRadius: 4, cursor: 'pointer', color: c.error, display: 'flex', padding: 4 }}
-                                        ><IcTrash /></button>
+                                            className="absolute top-1.5 right-1.5 bg-white/90 text-red-600 rounded-full p-1 shadow-xs hover:bg-white transition-colors"
+                                        >
+                                            <IcTrash />
+                                        </button>
                                     </div>
                                 ))}
                             </div>
                         )}
 
-                        {/* Upload zone */}
+                        {/* Dropzone */}
                         {images.length < 7 && (
                             <div
                                 onClick={() => fileInputRef.current?.click()}
-                                style={{ border: `1.5px dashed ${c.outlineVariant}`, borderRadius: 6, padding: '20px 16px', textAlign: 'center', cursor: 'pointer', transition: 'border-color 0.2s, background 0.2s' }}
-                                onMouseEnter={e => { e.currentTarget.style.borderColor = c.primary; e.currentTarget.style.background = '#fdf8f0'; }}
-                                onMouseLeave={e => { e.currentTarget.style.borderColor = c.outlineVariant; e.currentTarget.style.background = 'transparent'; }}
+                                className="border-2 border-dashed border-[#d0c5b5] hover:border-[#745a27] rounded-xl p-6 text-center cursor-pointer hover:bg-[#fbf9f6] transition-all"
                             >
-                                <IcImage />
-                                <p style={{ fontSize: 13, color: c.onSurfaceVariant, fontFamily: 'Inter, sans-serif', margin: '8px 0 4px' }}>Click to upload images</p>
-                                <p style={{ fontSize: 11, color: c.outlineVariant, fontFamily: 'Inter, sans-serif', margin: 0 }}>PNG, JPG, WEBP — Multiple allowed</p>
+                                <div className="mx-auto w-10 h-10 flex items-center justify-center text-[#745a27] mb-2">
+                                    <IcImage />
+                                </div>
+                                <p className="text-xs font-medium text-[#1b1c1a] mb-1">
+                                    Click to browse variant photography
+                                </p>
+                                <p className="text-[11px] text-[#7A6E63]">
+                                    High-res PNG, JPG, WEBP formats accepted
+                                </p>
                             </div>
                         )}
-                        <input ref={fileInputRef} type="file" accept="image/*" multiple onChange={handleImageUpload} style={{ display: 'none' }} />
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={handleImageUpload}
+                            className="hidden"
+                        />
                     </div>
                 </div>
 
-                {/* Panel Footer */}
-                <div style={{ padding: '20px 32px', borderTop: `1px solid ${c.surfaceContainerLow}`, display: 'flex', gap: 12, position: 'sticky', bottom: 0, background: c.surface }}>
+                {/* Footer Actions */}
+                <div className="p-6 sm:p-8 border-t border-[#e4e2df] bg-white sticky bottom-0 flex gap-3">
                     <button
+                        type="button"
                         onClick={onClose}
-                        style={{ flex: 1, padding: '13px 0', border: `1px solid ${c.outlineVariant}`, borderRadius: 6, background: 'transparent', color: c.onSurface, fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
+                        className="flex-1 py-3.5 border border-[#d0c5b5] text-[#1b1c1a] text-xs uppercase tracking-widest font-semibold hover:bg-[#f5f3f0] transition-colors"
                     >
                         Cancel
                     </button>
                     <button
+                        type="button"
                         onClick={handleSubmit}
                         disabled={saving}
-                        style={{ flex: 2, padding: '13px 0', background: saving ? c.outlineVariant : c.primary, border: 'none', borderRadius: 6, color: c.onPrimary, fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: saving ? 'not-allowed' : 'pointer', transition: 'background 0.2s, opacity 0.2s' }}
+                        className="flex-2 py-3.5 bg-[#0a192f] text-white hover:bg-[#745a27] disabled:opacity-50 text-xs uppercase tracking-widest font-semibold transition-all flex items-center justify-center gap-2"
                     >
-                        {saving ? 'Saving…' : 'Save Variant'}
+                        {saving ? (
+                            <>
+                                <span className="inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                <span>Saving Variant…</span>
+                            </>
+                        ) : (
+                            "Save Variant"
+                        )}
                     </button>
                 </div>
             </div>
@@ -380,10 +453,9 @@ function VariantFormPanel({ onClose, onSave, saving }) {
 /*  Main Page  */
 export default function SellerProductDetails() {
     const { productId } = useParams();
-
     const navigate = useNavigate();
-
     const { handleGetProductById, handleCreateProductVariants } = useProduct();
+
     const [product, setProduct] = useState(null);
     const [localVariants, setLocalVariants] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -392,25 +464,31 @@ export default function SellerProductDetails() {
     const [toast, setToast] = useState(null);
     const [activeThumb, setActiveThumb] = useState(0);
 
-    /*  Fetch  */
+    /*  Fetch Product  */
     useEffect(() => {
+        let cancelled = false;
         async function load() {
             setLoading(true);
             try {
                 const data = await handleGetProductById(productId);
-                setProduct(data);
-                setLocalVariants(data?.variants || []);
+                if (!cancelled) {
+                    setProduct(data);
+                    setLocalVariants(data?.variants || []);
+                }
             } catch (err) {
                 console.error(err);
-                setToast({ msg: 'Failed to load product.', type: 'error' });
+                if (!cancelled) {
+                    setToast({ msg: 'Failed to load product specifications.', type: 'error' });
+                }
             } finally {
-                setLoading(false);
+                if (!cancelled) setLoading(false);
             }
         }
         load();
-    }, [productId]);
+        return () => { cancelled = true; };
+    }, [productId, handleGetProductById]);
 
-    /*  Stock change  */
+    /*  Stock change handler  */
     function handleStockChange(idx, val) {
         setLocalVariants(prev => {
             const updated = [...prev];
@@ -423,41 +501,58 @@ export default function SellerProductDetails() {
     async function handleSaveVariant(payload, previewImages) {
         setSaving(true);
         try {
-            await handleCreateProductVariants(productId, payload);
+            const updatedProduct = await handleCreateProductVariants(productId, payload);
 
-            // Optimistically add to list with previews
-            setLocalVariants(prev => [...prev, {
-                images: previewImages,
-                stock: payload.stock,
-                attributes: payload.attributes,
-                price: payload.price ? { amount: payload.price, currency: 'INR' } : null,
-            }]);
+            // If backend returned updated variants use them, otherwise optimistic update
+            if (updatedProduct?.variants) {
+                setLocalVariants(updatedProduct.variants);
+            } else {
+                setLocalVariants(prev => [...prev, {
+                    images: previewImages,
+                    stock: payload.stock,
+                    attributes: payload.attributes,
+                    price: payload.price ? { amount: payload.price, currency: 'INR' } : null,
+                }]);
+            }
 
             setShowPanel(false);
-            setToast({ msg: 'Variant created successfully!', type: 'success' });
+            setToast({ msg: 'Variant created & inventory published!', type: 'success' });
         } catch (err) {
             console.error(err);
-            setToast({ msg: 'Failed to save variant. Please try again.', type: 'error' });
+            setToast({ msg: 'Failed to save variant. Please verify inputs.', type: 'error' });
         } finally {
             setSaving(false);
         }
     }
 
-    /*  Loading / Error states  */
+    /*  Loading State  */
     if (loading) {
         return (
-            <div style={{ minHeight: '100vh', background: c.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16 }}>
-                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-                <div style={{ width: 36, height: 36, border: `3px solid ${c.outlineVariant}`, borderTop: `3px solid ${c.primary}`, borderRadius: '50%', animation: 'spin 0.9s linear infinite' }} />
-                <p style={{ fontFamily: 'Inter, sans-serif', fontSize: 13, color: c.onSurfaceVariant, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Loading Variant Manager…</p>
+            <div className="min-h-screen bg-[#fbf9f6] flex flex-col items-center justify-center gap-4">
+                <div className="w-10 h-10 border-3 border-[#d0c5b5] border-t-[#745a27] rounded-full animate-spin" />
+                <p className="text-xs uppercase tracking-widest text-[#7A6E63] font-medium">
+                    Loading Atelier Inventory…
+                </p>
             </div>
         );
     }
 
+    /*  Not Found State  */
     if (!product) {
         return (
-            <div style={{ minHeight: '100vh', background: c.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, color: c.onSurface }}>Product not found.</p>
+            <div className="min-h-screen bg-[#fbf9f6] flex flex-col items-center justify-center p-6 text-center">
+                <h2
+                    className="text-3xl font-light text-[#0a192f] mb-4"
+                    style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                >
+                    Piece Not Found
+                </h2>
+                <button
+                    onClick={() => navigate('/seller/get')}
+                    className="px-6 py-3 bg-[#0a192f] text-white text-xs uppercase tracking-widest font-semibold"
+                >
+                    Back to Seller Dashboard
+                </button>
             </div>
         );
     }
@@ -465,129 +560,190 @@ export default function SellerProductDetails() {
     const images = product.images || [];
 
     return (
-        <div style={{ minHeight: '100vh', background: c.bg, fontFamily: 'Inter, sans-serif', color: c.onSurface }}>
-            <style>{`
-                @keyframes spin { to { transform: rotate(360deg); } }
-                * { box-sizing: border-box; }
-                input[type=number]::-webkit-inner-spin-button { opacity: 0.4; }
-                input::placeholder { color: ${c.outlineVariant}; }
-                select option { background: ${c.surface}; }
-            `}</style>
-
-            {/*  STICKY HEADER  */}
-            <header style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(251,249,246,0.9)', backdropFilter: 'blur(10px)', borderBottom: `1px solid ${c.outlineVariant}20`, padding: '0 40px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div className="min-h-screen bg-[#fbf9f6] font-sans text-[#1b1c1a] pb-24 selection:bg-[#C9A96E]/30">
+            {/* Sticky Header */}
+            <header className="sticky top-0 z-40 bg-[#fbf9f6]/95 backdrop-blur-md border-b border-[#e4e2df] px-4 sm:px-8 lg:px-12 h-16 flex items-center justify-between">
+                <div className="flex items-center gap-3 sm:gap-4 overflow-hidden">
                     <button
                         onClick={() => navigate('/seller/get')}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: c.onSurfaceVariant, display: 'flex', alignItems: 'center', gap: 6, padding: 0, fontSize: 13, fontFamily: 'Inter, sans-serif' }}
+                        className="inline-flex items-center gap-1.5 text-[#7A6E63] hover:text-[#1b1c1a] text-xs font-semibold uppercase tracking-wider transition-colors flex-shrink-0"
                     >
                         <IcArrowLeft />
-                        <span style={{ letterSpacing: '0.04em', textTransform: 'uppercase', fontSize: 11, fontWeight: 600 }}>Products</span>
+                        <span className="hidden sm:inline">Vault Inventory</span>
                     </button>
-                    <span style={{ color: c.outlineVariant, fontSize: 16 }}>/</span>
-                    <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 600, color: c.onSurface }}>
-                        {product.title?.length > 32 ? product.title.slice(0, 32) + '…' : product.title}
-                    </span>
+                    <span className="text-[#d0c5b5]">/</span>
+                    <h1
+                        className="text-base sm:text-lg font-medium text-[#0a192f] truncate"
+                        style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                    >
+                        {product.title}
+                    </h1>
                 </div>
-                <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: c.primary, background: c.primaryFixed, padding: '4px 12px', borderRadius: 20 }}>
-                    Seller Dashboard
+
+                <span className="text-[10px] uppercase tracking-widest font-semibold text-[#745a27] bg-[#ffdea6]/70 px-3 py-1 rounded-full whitespace-nowrap flex-shrink-0">
+                    Seller Studio
                 </span>
             </header>
 
-            <main style={{ maxWidth: 1200, margin: '0 auto', padding: '48px 40px 80px' }}>
+            {/* Main Content */}
+            <main className="max-w-[1440px] mx-auto px-4 sm:px-6 md:px-10 lg:px-12 pt-8 sm:pt-12 space-y-12">
 
-                {/*  BASE PRODUCT PANEL  */}
-                <section style={{ marginBottom: 64 }}>
-                    <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: c.primary, marginBottom: 20 }}>Base Product</p>
+                {/* Base Product Overview Section */}
+                <section>
+                    <span className="text-[10px] uppercase tracking-[0.25em] text-[#C9A96E] font-semibold block mb-3">
+                        Master Garment Profile
+                    </span>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '420px 1fr', gap: 48, background: c.surface, borderRadius: 12, padding: 36, boxShadow: '0 4px 32px rgba(116,90,39,0.05)' }}>
-                        {/* Gallery */}
-                        <div>
-                            <div style={{ aspectRatio: '4/5', background: c.surfaceContainerLow, borderRadius: 8, overflow: 'hidden', marginBottom: 10 }}>
-                                {images[activeThumb]
-                                    ? <img src={images[activeThumb].url} alt={product.title} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                                    : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: c.outlineVariant }}><IcPackage /></div>
-                                }
+                    <div className="bg-white border border-[#e4e2df] rounded-2xl p-6 sm:p-8 lg:p-10 shadow-xs">
+                        <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
+
+                            {/* Image Gallery */}
+                            <div className="w-full lg:w-[380px] xl:w-[420px] flex-shrink-0">
+                                <div className="aspect-[4/5] bg-[#f5f3f0] rounded-xl overflow-hidden mb-3 border border-[#e4e2df]">
+                                    {images[activeThumb] ? (
+                                        <img
+                                            src={images[activeThumb].url || images[activeThumb]}
+                                            alt={product.title}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-[#d0c5b5]">
+                                            <IcPackage />
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Thumbnails Strip */}
+                                {images.length > 1 && (
+                                    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                                        {images.map((img, i) => (
+                                            <button
+                                                key={i}
+                                                type="button"
+                                                onClick={() => setActiveThumb(i)}
+                                                className={`w-14 h-18 rounded-md overflow-hidden flex-shrink-0 border-2 transition-all ${i === activeThumb
+                                                    ? "border-[#745a27] opacity-100"
+                                                    : "border-transparent opacity-60 hover:opacity-100"
+                                                    }`}
+                                            >
+                                                <img
+                                                    src={img.url || img}
+                                                    alt={`Thumb ${i + 1}`}
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
-                            {images.length > 1 && (
-                                <div style={{ display: 'flex', gap: 8, overflowX: 'auto' }}>
-                                    {images.map((img, i) => (
-                                        <button
-                                            key={i}
-                                            onClick={() => setActiveThumb(i)}
-                                            style={{ flexShrink: 0, width: 56, height: 72, borderRadius: 4, overflow: 'hidden', border: `2px solid ${i === activeThumb ? c.primary : 'transparent'}`, cursor: 'pointer', padding: 0, background: 'none', transition: 'border-color 0.2s' }}
+
+                            {/* Details Information */}
+                            <div className="flex-1 flex flex-col justify-between gap-6">
+                                <div>
+                                    <span className="text-[10px] uppercase tracking-widest text-[#7A6E63] font-semibold block mb-1">
+                                        {product.category || "Atelier Collection"}
+                                    </span>
+                                    <h2
+                                        className="text-2xl sm:text-4xl font-light text-[#0a192f] leading-tight mb-4"
+                                        style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                                    >
+                                        {product.title}
+                                    </h2>
+                                    <p className="text-xs sm:text-sm text-[#7A6E63] leading-relaxed max-w-2xl font-light">
+                                        {product.description || "No editorial description available for this piece."}
+                                    </p>
+                                </div>
+
+                                {/* Metrics Cards */}
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 pt-4 border-t border-[#e4e2df]">
+                                    <div className="bg-[#fbf9f6] p-4 rounded-xl border border-[#e4e2df]">
+                                        <p className="text-[10px] uppercase tracking-wider text-[#7A6E63] font-medium mb-1">
+                                            Base Price
+                                        </p>
+                                        <p
+                                            className="text-xl sm:text-2xl font-normal text-[#0a192f]"
+                                            style={{ fontFamily: "'Cormorant Garamond', serif" }}
                                         >
-                                            <img src={img.url} alt={`Thumb ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+                                            {product.price?.currency || 'INR'} {Number(product.price?.amount || 0).toLocaleString('en-IN')}
+                                        </p>
+                                    </div>
 
-                        {/* Info */}
-                        <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: 20 }}>
-                            <div>
-                                <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: c.onSurfaceVariant, marginBottom: 6 }}>Product Title</p>
-                                <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 36, fontWeight: 600, color: c.onSurface, margin: 0, lineHeight: 1.2 }}>{product.title}</h1>
-                            </div>
+                                    <div className="bg-[#fbf9f6] p-4 rounded-xl border border-[#e4e2df]">
+                                        <p className="text-[10px] uppercase tracking-wider text-[#7A6E63] font-medium mb-1">
+                                            Configured Variants
+                                        </p>
+                                        <p
+                                            className="text-xl sm:text-2xl font-normal text-[#0a192f]"
+                                            style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                                        >
+                                            {localVariants.length} <span className="text-xs text-[#7A6E63]">editions</span>
+                                        </p>
+                                    </div>
 
-                            <p style={{ fontSize: 15, lineHeight: 1.7, color: c.onSurfaceVariant, margin: 0, maxWidth: 420 }}>{product.description}</p>
-
-                            <div style={{ display: 'flex', gap: 32 }}>
-                                <div>
-                                    <p style={{ ...labelBase, marginBottom: 4 }}>Base Price</p>
-                                    <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 500, color: c.primaryDark, margin: 0 }}>
-                                        {product.price?.amount ?? '—'} <span style={{ fontSize: 14, fontWeight: 400, color: c.onSurfaceVariant }}>{product.price?.currency ?? ''}</span>
-                                    </p>
-                                </div>
-                                <div>
-                                    <p style={{ ...labelBase, marginBottom: 4 }}>Variants</p>
-                                    <p style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 500, color: c.onSurface, margin: 0 }}>
-                                        {localVariants.length}
-                                    </p>
+                                    <div className="bg-[#fbf9f6] p-4 rounded-xl border border-[#e4e2df] col-span-2 sm:col-span-1">
+                                        <p className="text-[10px] uppercase tracking-wider text-[#7A6E63] font-medium mb-1">
+                                            Product ID
+                                        </p>
+                                        <code className="text-[11px] text-[#7A6E63] font-mono block truncate">
+                                            {productId}
+                                        </code>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div style={{ paddingTop: 8, borderTop: `1px solid ${c.surfaceContainerLow}` }}>
-                                <p style={labelBase}>Product ID</p>
-                                <code style={{ fontSize: 12, color: c.outline, fontFamily: 'monospace', background: c.surfaceContainerLow, padding: '4px 8px', borderRadius: 4 }}>{productId}</code>
-                            </div>
                         </div>
                     </div>
                 </section>
 
-                {/*  VARIANTS & INVENTORY  */}
-                <section>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 28 }}>
+                {/* Variants & Inventory Section */}
+                <section className="space-y-6">
+                    <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                         <div>
-                            <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', color: c.primary, marginBottom: 6 }}>Inventory</p>
-                            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 600, color: c.onSurface, margin: 0 }}>Variants & Stock</h2>
+                            <span className="text-[10px] uppercase tracking-[0.25em] text-[#C9A96E] font-semibold block mb-1">
+                                Stock & Attributes
+                            </span>
+                            <h2
+                                className="text-2xl sm:text-3xl font-light text-[#0a192f]"
+                                style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                            >
+                                Product Variants & Inventory
+                            </h2>
                         </div>
+
                         <button
+                            type="button"
                             onClick={() => setShowPanel(true)}
-                            style={{ display: 'flex', alignItems: 'center', gap: 8, background: c.primary, color: c.onPrimary, border: 'none', borderRadius: 6, padding: '12px 22px', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'opacity 0.2s' }}
-                            onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-                            onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-[#0a192f] text-white hover:bg-[#C9A96E] hover:text-[#0a192f] text-xs uppercase tracking-widest font-semibold transition-all duration-300 rounded-none shadow-xs"
                         >
-                            <IcPlus /> Add Variant
+                            <IcPlus /> Add New Variant
                         </button>
                     </div>
 
-                    {/* Empty state */}
+                    {/* Variants Grid */}
                     {localVariants.length === 0 ? (
-                        <div style={{ textAlign: 'center', padding: '64px 0', background: c.surface, borderRadius: 12, border: `1.5px dashed ${c.outlineVariant}` }}>
-                            <div style={{ marginBottom: 16 }}><IcPackage /></div>
-                            <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 500, color: c.onSurface, margin: '0 0 8px' }}>No variants yet</h3>
-                            <p style={{ fontSize: 14, color: c.onSurfaceVariant, marginBottom: 24 }}>Add your first variant to start managing inventory.</p>
+                        <div className="bg-white border-2 border-dashed border-[#d0c5b5] rounded-2xl p-12 text-center max-w-xl mx-auto space-y-4">
+                            <div className="w-14 h-14 mx-auto flex items-center justify-center text-[#d0c5b5]">
+                                <IcPackage />
+                            </div>
+                            <h3
+                                className="text-2xl font-light text-[#0a192f]"
+                                style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                            >
+                                No Variants Configured Yet
+                            </h3>
+                            <p className="text-xs text-[#7A6E63] max-w-md mx-auto leading-relaxed">
+                                Add bespoke sizes, unique colors, or customized variations to let collectors purchase specific editions.
+                            </p>
                             <button
+                                type="button"
                                 onClick={() => setShowPanel(true)}
-                                style={{ background: c.primary, color: c.onPrimary, border: 'none', borderRadius: 6, padding: '12px 28px', fontFamily: 'Inter, sans-serif', fontSize: 13, fontWeight: 600, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
+                                className="px-6 py-3 bg-[#0a192f] text-white hover:bg-[#C9A96E] hover:text-[#0a192f] text-xs uppercase tracking-widest font-semibold transition-all"
                             >
                                 Create First Variant
                             </button>
                         </div>
                     ) : (
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 20 }}>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {localVariants.map((variant, idx) => (
                                 <VariantCard
                                     key={variant._id || idx}
@@ -597,24 +753,24 @@ export default function SellerProductDetails() {
                                 />
                             ))}
 
-                            {/* Add more card */}
+                            {/* Add Variant Card Action */}
                             <div
                                 onClick={() => setShowPanel(true)}
-                                style={{ minHeight: 240, border: `1.5px dashed ${c.outlineVariant}`, borderRadius: 8, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 10, cursor: 'pointer', transition: 'border-color 0.2s, background 0.2s', color: c.onSurfaceVariant }}
-                                onMouseEnter={e => { e.currentTarget.style.borderColor = c.primary; e.currentTarget.style.background = '#fdf8f0'; e.currentTarget.style.color = c.primary; }}
-                                onMouseLeave={e => { e.currentTarget.style.borderColor = c.outlineVariant; e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = c.onSurfaceVariant; }}
+                                className="border-2 border-dashed border-[#d0c5b5] hover:border-[#745a27] rounded-xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-[#fbf9f6] transition-all min-h-[220px] text-[#7A6E63] hover:text-[#745a27]"
                             >
-                                <div style={{ width: 44, height: 44, borderRadius: '50%', border: `1.5px solid currentColor`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <div className="w-12 h-12 rounded-full border-2 border-current flex items-center justify-center">
                                     <IcPlus />
                                 </div>
-                                <span style={{ fontSize: 12, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'Inter, sans-serif' }}>Add Variant</span>
+                                <span className="text-xs uppercase tracking-widest font-semibold">
+                                    Add Another Variant
+                                </span>
                             </div>
                         </div>
                     )}
                 </section>
             </main>
 
-            {/*  SLIDE-OVER PANEL  */}
+            {/* Slide-over Variant Form */}
             {showPanel && (
                 <VariantFormPanel
                     onClose={() => setShowPanel(false)}
@@ -623,8 +779,14 @@ export default function SellerProductDetails() {
                 />
             )}
 
-            {/*  TOAST  */}
-            {toast && <Toast msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
+            {/* Toast feedback */}
+            {toast && (
+                <Toast
+                    msg={toast.msg}
+                    type={toast.type}
+                    onClose={() => setToast(null)}
+                />
+            )}
         </div>
     );
 }

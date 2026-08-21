@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useProduct } from "../hook/useProduct";
 import { useCart } from "../../../features/cart/hook/useCart";
 import { useSelector } from "react-redux";
 import { useAuth } from "../../../features/auth/hook/useAuth";
 
-// design tokens
+// ── Design tokens ──────────────────────────────────────────────────
 const t = {
     primary: "#0a192f",
     primaryText: "#ffffff",
@@ -20,14 +20,12 @@ const t = {
 };
 
 export default function ProductDetails() {
-
     const navigate = useNavigate();
     const { productId } = useParams();
     const { handleLogout } = useAuth();
     const { handleGetProductById } = useProduct();
-    const user = useSelector(state => state.auth.user)
-    const cartItems = useSelector(state => state.cart?.items)
-    const { handleAddToCart, handleGetCart, error } = useCart();
+    const user = useSelector(state => state.auth.user);
+    const { handleAddToCart, handleGetCart } = useCart();
 
     const [qty, setQty] = useState(1);
     const [product, setProduct] = useState(null);
@@ -35,64 +33,40 @@ export default function ProductDetails() {
     const [activeThumb, setActiveThumb] = useState(0);
     const [activeTab, setActiveTab] = useState("story");
     const [selectedSize, setSelectedSize] = useState("");
-    const [showAccount, setShowAccount] = useState(false);
     const [notification, setNotification] = useState(null);
     const [selectedColor, setSelectedColor] = useState("");
     const [cartFeedback, setCartFeedback] = useState(false);
     const [selectedVariant, setSelectedVariant] = useState(null);
 
-
-
     const variants = product?.variants ?? [];
 
-    const handleAdd = async () => {
+    // ── Cart ────────────────────────────────────────────────────────
+    const handleAdd = useCallback(async () => {
         try {
             await handleAddToCart({
                 productId: product?._id,
                 variantId: selectedVariant?._id,
                 quantity: qty,
                 selectedColor,
-                selectedSize
+                selectedSize,
             });
-
-            // Show success notification
-            setNotification({
-                type: "success",
-                message: "PRODUCT ADDED TO CART"
-            });
-
-            // Optional: button feedback
+            setNotification({ type: "success", message: "PRODUCT ADDED TO CART" });
             setCartFeedback(true);
-
-            setTimeout(() => {
-                setCartFeedback(false);
-            }, 2000);
-
-            // Remove toast after 3 seconds
-            setTimeout(() => {
-                setNotification(null);
-            }, 3000);
-
+            setTimeout(() => setCartFeedback(false), 2000);
+            setTimeout(() => setNotification(null), 3000);
         } catch (error) {
             console.error("Add to cart failed:", error);
-
             setNotification({
                 type: "error",
-                message: error?.response?.data?.message || "FAILED TO ADD PRODUCT TO CART"
+                message: error?.response?.data?.message || "FAILED TO ADD PRODUCT TO CART",
             });
-
-            setTimeout(() => {
-                setNotification(null);
-            }, 3000);
+            setTimeout(() => setNotification(null), 3000);
         }
-    };
+    }, [handleAddToCart, product, selectedVariant, qty, selectedColor, selectedSize]);
 
+    // ── Derived selections ──────────────────────────────────────────
     const availableColors = [
-        ...new Set(
-            variants
-                .map(v => v.attributes?.Color?.[0])
-                .filter(Boolean)
-        )
+        ...new Set(variants.map(v => v.attributes?.Color?.[0]).filter(Boolean)),
     ];
 
     const availableSizes = [
@@ -100,152 +74,102 @@ export default function ProductDetails() {
             variants.flatMap(v =>
                 (v.attributes?.Size?.[0] || "")
                     .split(",")
-                    .map(size => size.trim())
+                    .map(s => s.trim())
                     .filter(Boolean)
             )
-        )
+        ),
     ];
 
     function findVariant(color, size) {
-
         return variants.find(v => {
-
-            const sizes =
-                (v.attributes?.Size?.[0] || "")
-                    .split(",")
-                    .map(s => s.trim());
-
-            return (
-                v.attributes?.Color === color &&
-                sizes.includes(size)
-            );
+            const sizes = (v.attributes?.Size?.[0] || "").split(",").map(s => s.trim());
+            return v.attributes?.Color === color && sizes.includes(size);
         });
-
     }
 
-    function handleColorSelect(color) {
-
+    const handleColorSelect = useCallback((color) => {
         setSelectedColor(color);
-
         let variant = findVariant(color, selectedSize);
-
         if (!variant) {
-
-            variant = variants.find(
-                v => v.attributes?.Color?.[0] === color
-            );
-
+            variant = variants.find(v => v.attributes?.Color?.[0] === color);
             if (!variant) return;
-
-            const firstSize = (variant.attributes?.Size?.[0] || "").split(",")[0]
-                .trim();
-
+            const firstSize = (variant.attributes?.Size?.[0] || "").split(",")[0].trim();
             setSelectedSize(firstSize);
         }
-
         setSelectedVariant(variant);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [variants, selectedSize]);
 
-    }
-
-    function handleSizeSelect(size) {
-
+    const handleSizeSelect = useCallback((size) => {
         setSelectedSize(size);
-
         let variant = findVariant(selectedColor, size);
-
         if (!variant) {
-
             variant = variants.find(v => {
-
                 const sizes = (v.attributes?.Size?.[0] || "").split(",").map(s => s.trim());
-
-                return (
-                    v.attributes?.Color?.[0] === selectedColor && sizes.includes(size)
-                );
-
+                return v.attributes?.Color?.[0] === selectedColor && sizes.includes(size);
             });
-
             if (!variant) return;
-
-            setSelectedColor(
-                variant.attributes?.Color?.[0] || ""
-            );
-
+            setSelectedColor(variant.attributes?.Color?.[0] || "");
         }
-
         setSelectedVariant(variant);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [variants, selectedColor]);
 
-    }
-
+    // ── Data fetching ────────────────────────────────────────────────
     useEffect(() => {
-
+        let cancelled = false;
         async function fetchProduct() {
-
             const data = await handleGetProductById(productId);
+            if (cancelled) return;
             setProduct(data);
-
             if (data?.variants?.length) {
-
-                const firstVariant = data.variants[0];
-
-                setSelectedVariant(firstVariant);
-
-                setSelectedColor(firstVariant.attributes?.Color?.[0] || "");
-
-                const firstSize =
-                    (firstVariant.attributes?.Size?.[0] || "")
-                        .split(",")[0]
-                        .trim();
+                const first = data.variants[0];
+                setSelectedVariant(first);
+                setSelectedColor(first.attributes?.Color?.[0] || "");
+                const firstSize = (first.attributes?.Size?.[0] || "").split(",")[0].trim();
                 setSelectedSize(firstSize || "");
-
             }
-
         }
-
         fetchProduct();
-
+        return () => { cancelled = true; };
     }, [productId]);
 
+    // Reset thumb & qty when variant changes (merged into one effect)
     useEffect(() => {
         setActiveThumb(0);
-    }, [selectedVariant]);
-
-    useEffect(() => {
         setQty(1);
-
     }, [selectedVariant]);
 
     useEffect(() => {
         handleGetCart();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    function handleThumbClick(index) {
+    const handleThumbClick = useCallback((index) => {
         if (index === activeThumb) return;
         setImgOpacity(0);
         setTimeout(() => { setActiveThumb(index); setImgOpacity(1); }, 280);
-    }
+    }, [activeThumb]);
 
-    const handleUserLogout = async () => {
-        try {
-            await handleLogout();
-
-            setShowAccount(false);
-            navigate("/");
-
-        } catch (err) {
-            console.error("Logout failed:", err);
-        }
-    };
-
+    // ── Loading state ────────────────────────────────────────────────
     if (!product) {
         return (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: t.surface, gap: 16, fontFamily: "'Hanken Grotesk',sans-serif" }}>
-                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-                <div style={{ width: 40, height: 40, border: `3px solid ${t.outlineVariant}`, borderTop: `3px solid ${t.primary}`, borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-                <p style={{ fontSize: 13, letterSpacing: "0.12em", textTransform: "uppercase", color: t.onSurfaceVariant }}>Loading product…</p>
+            <div className="flex flex-col items-center justify-center min-h-screen gap-4"
+                style={{ background: t.surface, fontFamily: "'Hanken Grotesk', sans-serif" }}>
+                <div style={{
+                    width: 40, height: 40,
+                    border: `3px solid ${t.outlineVariant}`,
+                    borderTop: `3px solid ${t.primary}`,
+                    borderRadius: "50%",
+                    animation: "spin 0.8s linear infinite",
+                }} />
+                <p style={{ fontSize: 13, letterSpacing: "0.12em", textTransform: "uppercase", color: t.onSurfaceVariant }}>
+                    Loading product…
+                </p>
             </div>
         );
     }
+
     const images = selectedVariant?.images?.length ? selectedVariant.images : product.images || [];
     const currentImage = images[Math.min(activeThumb, images.length - 1)]?.url || "";
     const currentPrice = selectedVariant?.price ?? product.price;
@@ -257,581 +181,297 @@ export default function ProductDetails() {
     const stock = selectedVariant?.stock ?? 0;
     const outOfStock = stock <= 0;
 
+    const tabs = [
+        { id: "story", label: "Product Story" },
+        { id: "fit", label: "Fit & Care" },
+        { id: "shipping", label: "Shipping & Returns" },
+    ];
+
+    const trustBadges = [
+        { icon: "local_shipping", label: "Free Shipping" },
+        { icon: "workspace_premium", label: "Premium Quality" },
+        { icon: "verified", label: "Authentic" },
+    ];
+
     return (
-        <div style={{ background: t.surface, color: t.onSurface, fontFamily: "'Hanken Grotesk',sans-serif", minHeight: "100vh" }}>
-            <style>{`
-                @keyframes spin { to { transform: rotate(360deg); } }
-                .arks-add-btn:hover { background: #1a3a5c !important; }
-                .arks-buy-btn:hover { background: #f3f3f4 !important; }
-                .arks-thumb:hover { opacity: 1 !important; }
-                .arks-nav-a:hover { color: ${t.primary} !important; }
-                .arks-size:hover { border-color: ${t.primary} !important; }
-                .arks-tab:hover { color: ${t.primary} !important; }
-                .material-symbols-outlined {
-                    font-family: 'Material Symbols Outlined';
-                    font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
-                    vertical-align: middle; font-style: normal;
-                    font-size: inherit; display: inline-block;
-                }
-                .star-filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 20; }
-            `}</style>
+        <div style={{ background: t.surface, color: t.onSurface, fontFamily: "'Hanken Grotesk', sans-serif", minHeight: "100vh" }}>
 
-            {/*  NAV  */}
-            <nav style={{ position: "fixed", top: 0, width: "100%", zIndex: 50, background: "rgba(249,249,249,0.88)", backdropFilter: "blur(12px)", borderBottom: `1px solid ${t.outlineVariant}`, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 64px", height: 72, boxSizing: "border-box" }}>
-                <a href="/" style={{ fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 700, color: t.primary, textDecoration: "none", letterSpacing: "-0.02em" }}>ARKS</a>
-                <div style={{ display: "flex", gap: 40 }}>
-                    {["Collections", "New Arrivals", "Heritage", "Bespoke"].map(l => (
-                        <a key={l} href="#" className="arks-nav-a" style={{ fontSize: 13, color: t.onSurfaceVariant, textDecoration: "none", transition: "color .2s" }}>{l}</a>
-                    ))}
-                </div>
-                <div style={{ display: "flex", gap: 20 }}>
-                    <button
-                        onClick={() => navigate({
-                            pathname: "/cart",
-                            state: { productId: productId, variantId: selectedVariant._id }
-                        })}
+            {/* ── NOTIFICATION TOAST ───────────────────────────────── */}
+            {notification && (
+                <div className="fixed top-20 right-4 sm:right-8 z-50">
+                    <div
+                        className="p-4 shadow-md flex items-center justify-between gap-4 max-w-[360px] border"
                         style={{
-                            background: "none",
-                            border: "none",
-                            cursor: "pointer",
-                            color: t.primary,
-                            fontSize: 22,
-                            display: "flex",
-                            position: "relative"
+                            backgroundColor: notification.type === "success" ? "#f0fdf4" : "#fef2f2",
+                            borderColor: notification.type === "success" ? "#bbf7d0" : "#fecaca",
                         }}
-                        title="Cart"
                     >
-                        <span
-                            className="material-symbols-outlined"
-                            style={{ fontSize: 22 }}
-                        >
-                            shopping_bag
-                        </span>
-
-                        {cartItems && (
-                            <span
-                                style={{
-                                    position: "absolute",
-                                    top: -4,
-                                    right: -5,
-                                    width: 8,
-                                    height: 8,
-                                    borderRadius: "50%",
-                                    background: "#e53935",
-                                    border: "2px solid white"
-                                }}
-                            />
-                        )}
-                    </button>
-                    <div style={{ position: "relative" }}>
-
-                        <button
-                            onClick={() => setShowAccount(prev => !prev)}
-                            style={{
-                                background: "none",
-                                border: "none",
-                                cursor: "pointer",
-                                color: t.primary,
-                                fontSize: 22,
-                                display: "flex"
-                            }}
-                            title="Account"
-                        >
-                            <span
-                                className="material-symbols-outlined"
-                                style={{ fontSize: 22 }}
-                            >
-                                person
-                            </span>
+                        <div className="flex items-center gap-3">
+                            {notification.type === "success" ? (
+                                <svg className="w-5 h-5 text-green-700 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            ) : (
+                                <svg className="w-5 h-5 text-red-700 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            )}
+                            <p className="text-xs font-medium tracking-wide text-neutral-800">{notification.message}</p>
+                        </div>
+                        <button onClick={() => setNotification(null)} className="text-neutral-400 hover:text-neutral-600 transition-colors flex-shrink-0">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
                         </button>
-
-                        {showAccount && (
-                            <div
-                                style={{
-                                    position: "absolute",
-                                    top: "calc(100% + 10px)",
-                                    right: 0,
-                                    width: 230,
-                                    background: "#fff",
-                                    border: "1px solid #e5ddd0",
-                                    borderRadius: 12,
-                                    padding: 16,
-                                    boxShadow: "0 10px 30px rgba(0,0,0,0.12)",
-                                    zIndex: 1000
-                                }}
-                            >
-
-                                {/* Header */}
-                                <div
-                                    style={{
-                                        display: "flex",
-                                        justifyContent: "space-between",
-                                        alignItems: "flex-start",
-                                        marginBottom: 14
-                                    }}
-                                >
-                                    <div>
-                                        <div
-                                            style={{
-                                                fontSize: 13,
-                                                fontWeight: 600,
-                                                color: "#1b1c1a"
-                                            }}
-                                        >
-                                            My Account
-                                        </div>
-
-                                        <div
-                                            style={{
-                                                fontSize: 10,
-                                                color: "#8a8175",
-                                                marginTop: 3
-                                            }}
-                                        >
-                                            Account details
-                                        </div>
-                                    </div>
-
-                                    {/* Logout */}
-                                    <button
-                                        onClick={handleUserLogout}
-                                        title="Logout"
-                                        style={{
-                                            border: "none",
-                                            background: "transparent",
-                                            cursor: "pointer",
-                                            padding: 4,
-                                            display: "flex",
-                                            color: "#b84a4a"
-                                        }}
-                                    >
-                                        <svg
-                                            width="18"
-                                            height="18"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="currentColor"
-                                            strokeWidth="1.8"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                        >
-                                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                                            <polyline points="16 17 21 12 16 7" />
-                                            <line x1="21" y1="12" x2="9" y2="12" />
-                                        </svg>
-                                    </button>
-                                </div>
-
-                                {/* User details */}
-                                <div
-                                    style={{
-                                        borderTop: "1px solid #eee7dc",
-                                        paddingTop: 12
-                                    }}
-                                >
-                                    <div
-                                        style={{
-                                            fontSize: 12,
-                                            color: "#1b1c1a",
-                                            marginBottom: 8
-                                        }}
-                                    >
-                                        <span style={{ color: "#8a8175" }}>
-                                            Full Name
-                                        </span>
-
-                                        <div style={{ marginTop: 2, fontWeight: 500 }}>
-                                            {user?.fullname || "Not available"}
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        style={{
-                                            fontSize: 12,
-                                            color: "#1b1c1a",
-                                            marginBottom: 8
-                                        }}
-                                    >
-                                        <span style={{ color: "#8a8175" }}>
-                                            Email
-                                        </span>
-
-                                        <div style={{ marginTop: 2, fontWeight: 500 }}>
-                                            {user?.email || "Not available"}
-                                        </div>
-                                    </div>
-
-                                    <div
-                                        style={{
-                                            fontSize: 12,
-                                            color: "#1b1c1a"
-                                        }}
-                                    >
-                                        <span style={{ color: "#8a8175" }}>
-                                            Contact
-                                        </span>
-
-                                        <div style={{ marginTop: 2, fontWeight: 500 }}>
-                                            {user?.contact || "Not available"}
-                                        </div>
-                                    </div>
-                                </div>
-
-                            </div>
-                        )}
                     </div>
                 </div>
-            </nav>
+            )}
 
             <main style={{ paddingTop: 72 }}>
-                {/*  HERO  */}
-                <section style={{ maxWidth: 1440, margin: "0 auto", padding: "80px 64px", display: "grid", gridTemplateColumns: "7fr 5fr", gap: 48, boxSizing: "border-box" }}>
+                {/* ── HERO SECTION ─────────────────────────────────── */}
+                <section className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-16 py-8 md:py-16">
+                    <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
 
-                    {/* Gallery */}
-                    <div style={{ display: "flex", flexDirection: "row-reverse", gap: 16, height: 680 }}>
-                        {/* Main image */}
-                        <div style={{ flex: 1, background: t.surfaceContainerLow, overflow: "hidden", position: "relative" }}>
-                            <img src={currentImage} alt={product.title} style={{ width: "100%", height: "100%", objectFit: "cover", transition: "opacity .3s ease", display: "block", opacity: imgOpacity }} />
-                        </div>
-                        {/* Thumbnails */}
-                        <div style={{ width: 90, display: "flex", flexDirection: "column", gap: 12, overflowY: "auto" }}>
-                            {images.map((img, i) => (
-                                <button key={img._id || i} className="arks-thumb"
-                                    onClick={() => handleThumbClick(i)}
-                                    style={{ border: `2px solid ${i === activeThumb ? t.primary : "transparent"}`, width: "100%", aspectRatio: "3/4", background: t.surfaceContainerLow, overflow: "hidden", opacity: i === activeThumb ? 1 : 0.5, cursor: "pointer", transition: "opacity .25s, border-color .25s", padding: 0 }}>
-                                    <img src={img.url} alt={`View ${i + 1}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Right panel */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
-                        {/* Breadcrumbs */}
-                        <nav style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: t.onSurfaceVariant }}>
-                            <a href="/" className="arks-nav-a" style={{ color: t.onSurfaceVariant, textDecoration: "none" }}>HOME</a>
-                            <span>/</span><span>MEN</span><span>/</span>
-                            <span style={{ color: t.primary }}>POLOS</span>
-                        </nav>
-
-                        {/* Title & Price */}
-                        <div>
-                            <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: 32, fontWeight: 400, color: t.primary, margin: "0 0 10px" }}>{product.title}</h1>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                                <span style={{ fontSize: 20, fontWeight: 600, color: t.primary }}>{formattedPrice}</span>
-                                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                    <span style={{ color: t.secondary, fontSize: 14 }}>
-                                        {"★★★★"}<span style={{ opacity: 0.5 }}>★</span>
-                                    </span>
-                                    <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: t.onSurfaceVariant }}>4.8 (124)</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Description */}
-                        <p style={{ fontSize: 15, lineHeight: 1.7, color: t.onSurfaceVariant, margin: 0 }}>{product.description}</p>
-                        <p style={{
-                            fontSize: 13,
-                            fontWeight: 600,
-                            color: outOfStock ? "#c62828" : "#2e7d32",
-                            marginTop: -12
-                        }}
-                        >
-                            {outOfStock
-                                ? "Out of Stock"
-                                : `${stock} in stock`}
-                        </p>
-
-                        {/* Color Selector */}
-                        <div>
-                            <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: t.onSurfaceVariant, marginBottom: 10 }}>
-                                Color — <span
-                                    style={{
-                                        color: t.onSurface,
-                                        fontWeight: 400,
-                                        textTransform: "none",
-                                        letterSpacing: 0
-                                    }}
-                                >
-                                    {selectedColor}
-                                </span>                            </p>
-                            <div style={{ display: "flex", gap: 12 }}>
-                                {availableColors.map(color => (
+                        {/* ── IMAGE GALLERY ─────────────────────────── */}
+                        <div className="w-full lg:w-[58%] flex flex-col-reverse sm:flex-row gap-3">
+                            {/* Thumbnail Strip */}
+                            <div className="flex flex-row sm:flex-col gap-2 sm:gap-3 overflow-x-auto sm:overflow-y-auto sm:w-[80px] sm:max-h-[600px] pb-1 sm:pb-0">
+                                {images.map((img, i) => (
                                     <button
-                                        key={color}
-                                        title={color}
-                                        onClick={() => handleColorSelect(color)}
+                                        key={img._id || i}
+                                        className="arks-thumb flex-shrink-0"
+                                        onClick={() => handleThumbClick(i)}
                                         style={{
-                                            padding: "10px 18px",
-                                            borderRadius: 999,
+                                            border: `2px solid ${i === activeThumb ? t.primary : "transparent"}`,
+                                            width: 64,
+                                            minWidth: 64,
+                                            aspectRatio: "3/4",
+                                            background: t.surfaceContainerLow,
+                                            overflow: "hidden",
+                                            opacity: i === activeThumb ? 1 : 0.5,
                                             cursor: "pointer",
-
-                                            background:
-                                                selectedColor === color
-                                                    ? t.primary
-                                                    : "transparent",
-
-                                            color:
-                                                selectedColor === color
-                                                    ? t.primaryText
-                                                    : t.onSurface,
-
-                                            border:
-                                                `1px solid ${selectedColor === color
-                                                    ? t.primary
-                                                    : t.outlineVariant
-                                                }`,
-
-                                            transition: "all .25s",
-                                            fontSize: 13,
-                                            fontWeight: 500
+                                            padding: 0,
                                         }}
                                     >
-
-                                        {color}
-
+                                        <img
+                                            src={img.url}
+                                            alt={`View ${i + 1}`}
+                                            loading="lazy"
+                                            decoding="async"
+                                            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                                        />
                                     </button>
-
                                 ))}
                             </div>
-                        </div>
 
-                        {/* Size Selector */}
-                        <div>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                                <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: t.onSurfaceVariant, margin: 0 }}>Select Size</p>
-                                <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: t.secondary, textDecoration: "underline", padding: 0 }}>Size Guide</button>
-                            </div>
-                            <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 8 }}>
-                                {availableSizes.map(size => {
-                                    const isAvailable = variants.some(v => {
-
-                                        const sizes = (v.attributes?.Size?.[0] || "")
-                                            .split(",")
-                                            .map(s => s.trim());
-
-                                        return (
-                                            v.attributes?.Color?.[0] === selectedColor &&
-                                            sizes.includes(size)
-                                        );
-
-                                    });
-
-                                    return (
-
-                                        <button
-                                            key={size}
-                                            className="arks-size"
-                                            disabled={!isAvailable}
-                                            onClick={() => handleSizeSelect(size)}
-                                            style={{
-                                                padding: "10px 0",
-
-                                                border:
-                                                    `1px solid ${selectedSize === size
-                                                        ? t.primary
-                                                        : t.outline
-                                                    }`,
-
-                                                background:
-                                                    selectedSize === size
-                                                        ? t.primary
-                                                        : "transparent",
-
-                                                color:
-                                                    selectedSize === size
-                                                        ? t.primaryText
-                                                        : t.onSurface,
-
-                                                opacity:
-                                                    isAvailable
-                                                        ? 1
-                                                        : 0.35,
-
-                                                cursor:
-                                                    isAvailable
-                                                        ? "pointer"
-                                                        : "not-allowed",
-
-                                                fontFamily:
-                                                    "'Hanken Grotesk',sans-serif",
-
-                                                fontSize: 13,
-
-                                                fontWeight: 500,
-
-                                                letterSpacing: "0.05em",
-
-                                                transition: "all .2s"
-                                            }}
-                                        >
-
-                                            {size}
-
-                                        </button>
-
-                                    );
-
-                                })}
-                            </div>
-                        </div>
-
-                        {/* Quantity */}
-                        <div>
-                            <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: t.onSurfaceVariant, marginBottom: 10 }}>Quantity</p>
-                            <div style={{ display: "flex", alignItems: "center", border: `1px solid ${t.outlineVariant}`, width: "fit-content" }}>
-                                <button onClick={() => setQty(q => Math.max(1, q - 1))} style={{ background: "none", border: "none", width: 40, height: 40, fontSize: 20, cursor: "pointer", color: t.onSurface }}>−</button>
-                                <span style={{ width: 48, textAlign: "center", fontSize: 15 }}>{qty}</span>
-                                <button onClick={() => setQty(q => q + 1)} style={{ background: "none", border: "none", width: 40, height: 40, fontSize: 20, cursor: "pointer", color: t.onSurface }}>+</button>
-                            </div>
-                        </div>
-
-                        {/* CTA Buttons */}
-                        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                            <button
-                                className="arks-add-btn"
-                                disabled={outOfStock}
-                                onClick={handleAdd}
-                                style={{
-                                    opacity: outOfStock ? 0.5 : 1,
-                                    cursor: outOfStock ? "not-allowed" : "pointer",
-                                    width: "100%",
-                                    padding: "18px 0",
-                                    background: cartFeedback ? "#2d5a27" : t.primary,
-                                    color: t.primaryText,
-                                    border: "none",
-                                    fontFamily: "'Hanken Grotesk', sans-serif",
-                                    fontSize: 13,
-                                    fontWeight: 600,
-                                    letterSpacing: "0.15em",
-                                    textTransform: "uppercase",
-                                    transition: "background .3s"
-                                }}
-                            >
-                                {outOfStock
-                                    ? "Out of Stock"
-                                    : cartFeedback
-                                        ? "✓ Added to Cart"
-                                        : "Add to Cart"
-                                }
-                            </button>
-                            <button className="arks-buy-btn" disabled={outOfStock}
-                                style={{ opacity: outOfStock ? 0.5 : 1, cursor: outOfStock ? "not-allowed" : "pointer", width: "100%", padding: "18px 0", background: "transparent", color: t.primary, border: `1px solid ${t.primary}`, fontFamily: "'Hanken Grotesk',sans-serif", fontSize: 13, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", transition: "background .3s" }}>
-                                {outOfStock ? "Out of Stock" : "Buy Now"}
-                            </button>
-                        </div>
-                        {/* Notification FOR CTA BUTTONS */}
-                        {notification && (
-                            <div className="fixed top-12 right-12 z-50 animate-fade-in-down">
-                                <div
-                                    className="p-4 rounded-none shadow-sm flex items-center justify-between gap-4 max-w-md border"
+                            {/* Main Image */}
+                            <div className="flex-1 bg-[#f3f3f4] overflow-hidden relative" style={{ aspectRatio: "3/4", maxHeight: "70vh", minHeight: 320 }}>
+                                <img
+                                    src={currentImage}
+                                    alt={product.title}
                                     style={{
-                                        backgroundColor:
-                                            notification.type === "success"
-                                                ? "#f0fdf4"
-                                                : notification.type === "error"
-                                                    ? "#fef2f2"
-                                                    : "#fffbeb",
+                                        width: "100%", height: "100%", objectFit: "cover",
+                                        transition: "opacity .3s ease", display: "block", opacity: imgOpacity,
+                                    }}
+                                />
+                            </div>
+                        </div>
 
-                                        borderColor:
-                                            notification.type === "success"
-                                                ? "#bbf7d0"
-                                                : notification.type === "error"
-                                                    ? "#fecaca"
-                                                    : "#fef3c7",
+                        {/* ── RIGHT PANEL ───────────────────────────── */}
+                        <div className="w-full lg:w-[42%] flex flex-col gap-6 lg:gap-7">
+                            {/* Breadcrumbs */}
+                            <nav className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.1em] uppercase text-[#44474d]">
+                                <a href="/" className="arks-nav-a hover:text-[#0a192f] transition-colors" style={{ color: t.onSurfaceVariant, textDecoration: "none" }}>Home</a>
+                                <span>/</span><span>Men</span><span>/</span>
+                                <span style={{ color: t.primary }}>Details</span>
+                            </nav>
+
+                            {/* Title & Price */}
+                            <div>
+                                <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(22px,4vw,32px)", fontWeight: 400, color: t.primary, margin: "0 0 10px" }}>
+                                    {product.title}
+                                </h1>
+                                <div className="flex items-center justify-between gap-2 flex-wrap">
+                                    <span style={{ fontSize: 20, fontWeight: 600, color: t.primary }}>{formattedPrice}</span>
+                                    <div className="flex items-center gap-2">
+                                        <span style={{ color: t.secondary, fontSize: 14 }}>{"★★★★"}<span style={{ opacity: 0.5 }}>★</span></span>
+                                        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: t.onSurfaceVariant }}>4.8 (124)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Description */}
+                            <p style={{ fontSize: 15, lineHeight: 1.7, color: t.onSurfaceVariant, margin: 0 }}>{product.description}</p>
+                            <p style={{ fontSize: 13, fontWeight: 600, color: outOfStock ? "#c62828" : "#2e7d32", marginTop: -16 }}>
+                                {outOfStock ? "Out of Stock" : `${stock} in stock`}
+                            </p>
+
+                            {/* Color Selector */}
+                            {availableColors.length > 0 && (
+                                <div>
+                                    <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: t.onSurfaceVariant, marginBottom: 10 }}>
+                                        Color — <span style={{ color: t.onSurface, fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>{selectedColor}</span>
+                                    </p>
+                                    <div className="flex flex-wrap gap-3">
+                                        {availableColors.map(color => (
+                                            <button key={color} title={color} onClick={() => handleColorSelect(color)} style={{
+                                                padding: "8px 16px",
+                                                borderRadius: 999,
+                                                cursor: "pointer",
+                                                background: selectedColor === color ? t.primary : "transparent",
+                                                color: selectedColor === color ? t.primaryText : t.onSurface,
+                                                border: `1px solid ${selectedColor === color ? t.primary : t.outlineVariant}`,
+                                                transition: "all .25s",
+                                                fontSize: 13,
+                                                fontWeight: 500,
+                                            }}>
+                                                {color}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Size Selector */}
+                            {availableSizes.length > 0 && (
+                                <div>
+                                    <div className="flex justify-between items-center mb-2.5">
+                                        <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: t.onSurfaceVariant, margin: 0 }}>Select Size</p>
+                                        <button style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: t.secondary, textDecoration: "underline", padding: 0 }}>Size Guide</button>
+                                    </div>
+                                    <div className="grid grid-cols-5 sm:grid-cols-5 gap-2">
+                                        {availableSizes.map(size => {
+                                            const isAvailable = variants.some(v => {
+                                                const sizes = (v.attributes?.Size?.[0] || "").split(",").map(s => s.trim());
+                                                return v.attributes?.Color?.[0] === selectedColor && sizes.includes(size);
+                                            });
+                                            return (
+                                                <button
+                                                    key={size}
+                                                    className="arks-size"
+                                                    disabled={!isAvailable}
+                                                    onClick={() => handleSizeSelect(size)}
+                                                    style={{
+                                                        padding: "10px 0",
+                                                        border: `1px solid ${selectedSize === size ? t.primary : t.outline}`,
+                                                        background: selectedSize === size ? t.primary : "transparent",
+                                                        color: selectedSize === size ? t.primaryText : t.onSurface,
+                                                        opacity: isAvailable ? 1 : 0.35,
+                                                        cursor: isAvailable ? "pointer" : "not-allowed",
+                                                        fontFamily: "'Hanken Grotesk', sans-serif",
+                                                        fontSize: 13,
+                                                        fontWeight: 500,
+                                                        letterSpacing: "0.05em",
+                                                        transition: "all .2s",
+                                                    }}
+                                                >
+                                                    {size}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Quantity */}
+                            <div>
+                                <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: t.onSurfaceVariant, marginBottom: 10 }}>Quantity</p>
+                                <div className="flex items-center border border-[#c5c6cd] w-fit">
+                                    <button onClick={() => setQty(q => Math.max(1, q - 1))} style={{ background: "none", border: "none", width: 40, height: 40, fontSize: 20, cursor: "pointer", color: t.onSurface }}>−</button>
+                                    <span style={{ width: 48, textAlign: "center", fontSize: 15 }}>{qty}</span>
+                                    <button onClick={() => setQty(q => q + 1)} style={{ background: "none", border: "none", width: 40, height: 40, fontSize: 20, cursor: "pointer", color: t.onSurface }}>+</button>
+                                </div>
+                            </div>
+
+                            {/* CTA Buttons */}
+                            <div className="flex flex-col gap-3">
+                                <button
+                                    className="arks-add-btn"
+                                    disabled={outOfStock}
+                                    onClick={handleAdd}
+                                    style={{
+                                        opacity: outOfStock ? 0.5 : 1,
+                                        cursor: outOfStock ? "not-allowed" : "pointer",
+                                        width: "100%", padding: "16px 0",
+                                        background: cartFeedback ? "#2d5a27" : t.primary,
+                                        color: t.primaryText, border: "none",
+                                        fontFamily: "'Hanken Grotesk', sans-serif",
+                                        fontSize: 13, fontWeight: 600,
+                                        letterSpacing: "0.15em", textTransform: "uppercase",
+                                        transition: "background .3s",
                                     }}
                                 >
-                                    <div className="flex items-center gap-3">
-
-                                        {notification.type === "success" ? (
-                                            <svg
-                                                className="w-5 h-5 text-green-700 flex-shrink-0"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
-                                                strokeWidth="2"
-                                            >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                                />
-                                            </svg>
-                                        ) : (
-                                            <svg
-                                                className="w-5 h-5 text-red-700 flex-shrink-0"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
-                                                strokeWidth="2"
-                                            >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    d="M6 18L18 6M6 6l12 12"
-                                                />
-                                            </svg>
-                                        )}
-
-                                        <p className="text-xs font-medium tracking-wide text-neutral-800">
-                                            {notification.message}
-                                        </p>
-                                    </div>
-
-                                    <button
-                                        onClick={() => setNotification(null)}
-                                        className="text-neutral-400 hover:text-neutral-600 transition-colors"
-                                    >
-                                        <svg
-                                            className="w-4 h-4"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                strokeWidth="2"
-                                                d="M6 18L18 6M6 6l12 12"
-                                            />
-                                        </svg>
-                                    </button>
-                                </div>
+                                    {outOfStock ? "Out of Stock" : cartFeedback ? "✓ Added to Cart" : "Add to Cart"}
+                                </button>
+                                <button
+                                    className="arks-buy-btn"
+                                    disabled={outOfStock}
+                                    style={{
+                                        opacity: outOfStock ? 0.5 : 1,
+                                        cursor: outOfStock ? "not-allowed" : "pointer",
+                                        width: "100%", padding: "16px 0",
+                                        background: "transparent", color: t.primary,
+                                        border: `1px solid ${t.primary}`,
+                                        fontFamily: "'Hanken Grotesk', sans-serif",
+                                        fontSize: 13, fontWeight: 600,
+                                        letterSpacing: "0.15em", textTransform: "uppercase",
+                                        transition: "background .3s",
+                                    }}
+                                >
+                                    {outOfStock ? "Out of Stock" : "Buy Now"}
+                                </button>
                             </div>
-                        )}
 
-                        {/* Trust Badges */}
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, paddingTop: 20, borderTop: `1px solid ${t.outlineVariant}` }}>
-                            {[{ icon: "local_shipping", label: "Free Shipping" }, { icon: "workspace_premium", label: "Premium Quality" }, { icon: "verified", label: "Authentic" }].map(b => (
-                                <div key={b.label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, textAlign: "center" }}>
-                                    <span className="material-symbols-outlined" style={{ fontSize: 22, color: t.primary }}>{b.icon}</span>
-                                    <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: t.onSurfaceVariant }}>{b.label}</span>
-                                </div>
-                            ))}
+                            {/* Trust Badges */}
+                            <div className="grid grid-cols-3 gap-4 pt-5 border-t border-[#c5c6cd]">
+                                {trustBadges.map(b => (
+                                    <div key={b.label} className="flex flex-col items-center gap-1.5 text-center">
+                                        <span className="material-symbols-outlined" style={{ fontSize: 22, color: t.primary }}>{b.icon}</span>
+                                        <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: t.onSurfaceVariant }}>{b.label}</span>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </section>
 
-                {/*  TABS  */}
+                {/* ── TABS ─────────────────────────────────────────── */}
                 <section style={{ background: "#ffffff", borderTop: `1px solid ${t.outlineVariant}`, borderBottom: `1px solid ${t.outlineVariant}` }}>
-                    <div style={{ maxWidth: 1440, margin: "0 auto", padding: "64px 64px", boxSizing: "border-box" }}>
-                        <div style={{ display: "flex", justifyContent: "center", gap: 64, marginBottom: 40, borderBottom: `1px solid ${t.outlineVariant}` }}>
-                            {[{ id: "story", label: "Product Story" }, { id: "fit", label: "Fit & Care" }, { id: "shipping", label: "Shipping & Returns" }].map(tb => (
-                                <button key={tb.id} className="arks-tab" onClick={() => setActiveTab(tb.id)}
-                                    style={{ paddingBottom: 16, fontFamily: "'Hanken Grotesk',sans-serif", fontSize: 11, fontWeight: 600, letterSpacing: "0.18em", textTransform: "uppercase", background: "none", border: "none", borderBottom: `2px solid ${activeTab === tb.id ? t.primary : "transparent"}`, color: activeTab === tb.id ? t.primary : t.onSurfaceVariant, cursor: "pointer", transition: "all .25s", marginBottom: -1 }}>
+                    <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-16 py-12 md:py-16">
+                        {/* Tab headers — horizontally scrollable on mobile */}
+                        <div className="flex gap-8 md:gap-16 mb-10 border-b border-[#c5c6cd] overflow-x-auto pb-px scrollbar-hide justify-start md:justify-center">
+                            {tabs.map(tb => (
+                                <button
+                                    key={tb.id}
+                                    className="arks-tab flex-shrink-0"
+                                    onClick={() => setActiveTab(tb.id)}
+                                    style={{
+                                        paddingBottom: 16,
+                                        fontFamily: "'Hanken Grotesk', sans-serif",
+                                        fontSize: 11, fontWeight: 600,
+                                        letterSpacing: "0.18em", textTransform: "uppercase",
+                                        background: "none", border: "none",
+                                        borderBottom: `2px solid ${activeTab === tb.id ? t.primary : "transparent"}`,
+                                        color: activeTab === tb.id ? t.primary : t.onSurfaceVariant,
+                                        cursor: "pointer", transition: "all .25s",
+                                        marginBottom: -1,
+                                    }}
+                                >
                                     {tb.label}
                                 </button>
                             ))}
                         </div>
-                        <div style={{ maxWidth: 720, margin: "0 auto" }}>
+
+                        {/* Tab content */}
+                        <div className="max-w-[720px] mx-auto">
                             {activeTab === "story" && (
                                 <>
-                                    <h3 style={{ fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 500, textAlign: "center", marginBottom: 20, color: t.onSurface }}>Uncompromising Quality</h3>
-                                    <p style={{ fontSize: 16, lineHeight: 1.7, color: t.onSurfaceVariant, textAlign: "center" }}>{product.description} Crafted with precision and care, this polo represents the finest in everyday luxury — built to last season after season.</p>
+                                    <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 500, textAlign: "center", marginBottom: 20, color: t.onSurface }}>Uncompromising Quality</h3>
+                                    <p style={{ fontSize: 15, lineHeight: 1.7, color: t.onSurfaceVariant, textAlign: "center" }}>{product.description} Crafted with precision and care, this piece represents the finest in everyday luxury — built to last season after season.</p>
                                 </>
                             )}
                             {activeTab === "fit" && (
-                                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 48 }}>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-10 sm:gap-12">
                                     <div>
                                         <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: t.primary, marginBottom: 12 }}>The Fit</p>
                                         <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 10, fontSize: 15, color: t.onSurfaceVariant }}>
@@ -848,8 +488,8 @@ export default function ProductDetails() {
                             )}
                             {activeTab === "shipping" && (
                                 <div style={{ textAlign: "center" }}>
-                                    <p style={{ fontSize: 16, lineHeight: 1.7, color: t.onSurfaceVariant }}>Complimentary express shipping on all orders over 250rs. Orders processed within 24 hours.</p>
-                                    <div style={{ display: "flex", justifyContent: "center", gap: 64, padding: "20px 0", borderTop: `1px solid ${t.outlineVariant}`, borderBottom: `1px solid ${t.outlineVariant}`, margin: "16px 0" }}>
+                                    <p style={{ fontSize: 15, lineHeight: 1.7, color: t.onSurfaceVariant }}>Complimentary express shipping on all orders over ₹250. Orders processed within 24 hours.</p>
+                                    <div className="flex justify-center gap-12 sm:gap-16 py-5 border-t border-b border-[#c5c6cd] my-4">
                                         <div><p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: t.primary, marginBottom: 4 }}>Domestic</p><p style={{ color: t.onSurfaceVariant, fontSize: 14, margin: 0 }}>2–3 Business Days</p></div>
                                         <div><p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: t.primary, marginBottom: 4 }}>International</p><p style={{ color: t.onSurfaceVariant, fontSize: 14, margin: 0 }}>5–7 Business Days</p></div>
                                     </div>
@@ -860,28 +500,35 @@ export default function ProductDetails() {
                     </div>
                 </section>
 
-                {/*  SELLER  */}
-                <section style={{ maxWidth: 1440, margin: "0 auto", padding: "80px 64px", boxSizing: "border-box" }}>
-                    <div style={{ background: t.surfaceContainerLow, padding: 64, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 64, alignItems: "center" }}>
-                        <div style={{ aspectRatio: "16/9", overflow: "hidden" }}>
-                            <img src={images[1]?.url || images[0]?.url} alt="Seller showcase" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                {/* ── HERITAGE SECTION ─────────────────────────────── */}
+                <section className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-16 py-12 md:py-20">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center" style={{ background: t.surfaceContainerLow, padding: "clamp(24px,5vw,64px)" }}>
+                        <div className="aspect-video overflow-hidden">
+                            <img
+                                src={images[1]?.url || images[0]?.url}
+                                alt="Seller showcase"
+                                loading="lazy"
+                                decoding="async"
+                                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                            />
                         </div>
                         <div>
                             <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.25em", textTransform: "uppercase", color: t.secondary, marginBottom: 12 }}>The Maison</p>
-                            <h2 style={{ fontFamily: "'Playfair Display',serif", fontSize: 32, fontWeight: 400, color: t.primary, marginBottom: 16 }}>ARKS Heritage</h2>
+                            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(22px,3vw,32px)", fontWeight: 400, color: t.primary, marginBottom: 16 }}>ARKS Heritage</h2>
                             <p style={{ fontSize: 15, lineHeight: 1.7, color: t.onSurfaceVariant }}>Founded on the principles of quiet luxury and artisanal precision, ARKS has been redefining the modern wardrobe. We believe that true quality is found in the details — the reinforced seam, the hand-finished buttonhole, the perfect weight of a drape.</p>
                         </div>
                     </div>
                 </section>
             </main>
 
-            {/*  FOOTER  */}
-            <footer style={{ background: t.surface, borderTop: `1px solid ${t.outlineVariant}`, padding: "48px 64px", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 24 }}>
+            {/* ── FOOTER ───────────────────────────────────────────── */}
+            <footer className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 flex-wrap px-4 sm:px-8 lg:px-16 py-10"
+                style={{ background: t.surface, borderTop: `1px solid ${t.outlineVariant}` }}>
                 <div>
-                    <a href="/" style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, fontWeight: 700, color: t.primary, textDecoration: "none" }}>ARKS</a>
+                    <a href="/" style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: t.primary, textDecoration: "none" }}>ARKS</a>
                     <p style={{ fontSize: 11, color: t.onSurfaceVariant, letterSpacing: "0.06em", textTransform: "uppercase", marginTop: 8, marginBottom: 0 }}>© 2025 ARKS. All Rights Reserved.</p>
                 </div>
-                <div style={{ display: "flex", gap: 32, flexWrap: "wrap" }}>
+                <div className="flex flex-wrap gap-5 sm:gap-8">
                     {["Shipping", "Returns", "Size Guide", "Newsletter", "Privacy", "Terms"].map(l => (
                         <a key={l} href="#" className="arks-nav-a" style={{ fontSize: 13, color: t.onSurfaceVariant, textDecoration: "none" }}>{l}</a>
                     ))}

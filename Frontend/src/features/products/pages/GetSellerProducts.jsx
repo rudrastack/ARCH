@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function GetSellerProducts() {
-    const { handleGetSellerProducts } = useProduct();
+    const { handleGetSellerProducts, handleDeleteProduct } = useProduct();
     const navigate = useNavigate();
 
     // Data States
@@ -74,9 +74,11 @@ export default function GetSellerProducts() {
         });
 
     // Delete item handler
-    const handleDeleteProduct = (productId, e) => {
+    const DeleteProduct = async (productId, e) => {
         e.stopPropagation();
         const productTitle = products.find(p => p._id === productId)?.title;
+        const product = await handleDeleteProduct(productId)
+        console.log(product);
 
         // Remove locally from state
         setProducts(prev => prev.filter(p => p._id !== productId));
@@ -410,7 +412,7 @@ export default function GetSellerProducts() {
                                                 </svg>
                                             </button>
                                             <button
-                                                onClick={(e) => handleDeleteProduct(product._id, e)}
+                                                onClick={(e) => DeleteProduct(product._id, e)}
                                                 className="p-2.5 bg-white text-[#1b1c1a] hover:bg-red-600 hover:text-white transition-colors shadow-md rounded-full"
                                                 title="Archive Piece"
                                             >

@@ -13,7 +13,6 @@ function App() {
     useEffect(() => {
         handleGetMe()
     }, [])
-    console.log(user)
 
 
     return (

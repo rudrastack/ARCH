@@ -1,27 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useCart } from '../hook/useCart';
 import { useNavigate, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { useRazorpay, RazorpayOrderOptions } from "react-razorpay";
-
-
-const t = {
-    primary: "#0a192f",
-    primaryText: "#ffffff",
-    secondary: "#735c00",
-    surface: "#fbf9f6",
-    surfaceContainerLow: "#f5f3f0",
-    surfaceContainer: "#eeeeee",
-    onSurface: "#1b1c1a",
-    onSurfaceVariant: "#7A6E63",
-    outline: "#75777e",
-    outlineVariant: "#e4e2df",
-    accentGold: "#C9A96E",
-    accentRed: "#b71c1c",
-};
+import { useRazorpay } from "react-razorpay";
 
 export default function Cart() {
-
     const {
         handleGetCart,
         handleCartOrder,
@@ -32,336 +15,421 @@ export default function Cart() {
     } = useCart();
 
     const navigate = useNavigate();
-    const cart = useSelector(state => state.cart)
-    const user = useSelector(state => state.auth.user);
-    const { error, isLoading, Razorpay } = useRazorpay();
+    const cart = useSelector(state => state.cart || { items: [], totalPrice: 0, currency: 'INR' });
+    const user = useSelector(state => state.auth?.user);
+    const { Razorpay } = useRazorpay();
 
-    const handleCheckOut = async () => {
-        const response = await handleCartOrder();
-
-        console.log("Orderamount:", response.order.amount);
-        console.log("Ordercurrency:", response.order.currency);
-        console.log("Order ID:", response.order.id);
-
-        const options = {
-            key: "rzp_test_TQWa86qmNQxtTo",
-            amount: response.order.amount,
-            currency: response.order.currency,
-            name: "ARKS",
-            description: "Test Transaction",
-
-            // ✅ FIX
-            order_id: response.order.id,
-
-            handler: async (response) => {
-                console.log("RAZORPAY RESPONSE:", response);
-
-                const isValid = await handleVerifyOrder(response);
-
-                console.log("PAYMENT VALID:", isValid);
-
-                if (isValid) {
-                    navigate(
-                        `/order-success?order_id=${response.razorpay_order_id}`
-                    );
-                }
-            },
-
-            prefill: {
-                name: user?.fullname,
-                email: user?.email,
-                contact: user?.contact,
-            },
-
-            theme: {
-                color: t.primary,
-            },
-        };
-
-        const razorpayInstance = new Razorpay(options);
-        razorpayInstance.open();
-    };
+    const [isCheckingOut, setIsCheckingOut] = useState(false);
+    const [actionLoading, setActionLoading] = useState(null); // tracking item id being updated
 
     useEffect(() => {
         handleGetCart();
     }, []);
 
-    const getSelectedVariant = (item) => {
-        return item?.product?.variants;
-    };
-    const getItemImage = (item) => {
-        const variant = getSelectedVariant(item);
+    const cartItems = cart.items || [];
+    const totalPrice = Number(cart.totalPrice || 0);
+    const currency = cart.currency || 'INR';
+    const shippingThreshold = 2000;
+    const shippingCost = totalPrice > shippingThreshold || totalPrice === 0 ? 0 : 250;
+    const amountToFreeShipping = Math.max(0, shippingThreshold - totalPrice);
+    const finalTotal = totalPrice + shippingCost;
 
-        if (variant?.images?.[0]?.url) {
-            return variant.images[0].url;
+    const handleCheckOut = async () => {
+        if (!user) {
+            navigate('/login');
+            return;
         }
 
-        if (item.product?.images?.[0]?.url) {
+        try {
+            setIsCheckingOut(true);
+            const response = await handleCartOrder();
+
+            if (!response?.order?.id) {
+                console.error("No order ID returned from checkout");
+                setIsCheckingOut(false);
+                return;
+            }
+
+            const options = {
+                key: "rzp_test_TQWa86qmNQxtTo",
+                amount: response.order.amount,
+                currency: response.order.currency || currency,
+                name: "ARKS Atelier",
+                description: "Luxury Haute Couture Reservation",
+                order_id: response.order.id,
+                handler: async (paymentResponse) => {
+                    try {
+                        const isValid = await handleVerifyOrder(paymentResponse);
+                        if (isValid) {
+                            navigate(`/order-success?order_id=${paymentResponse.razorpay_order_id || response.order.id}`);
+                        }
+                    } catch (verifyErr) {
+                        console.error("Payment verification failed:", verifyErr);
+                    } finally {
+                        setIsCheckingOut(false);
+                    }
+                },
+                prefill: {
+                    name: user?.fullname || "",
+                    email: user?.email || "",
+                    contact: user?.contact || "",
+                },
+                theme: {
+                    color: "#0a192f",
+                },
+                modal: {
+                    ondismiss: () => {
+                        setIsCheckingOut(false);
+                    }
+                }
+            };
+
+            const razorpayInstance = new Razorpay(options);
+            razorpayInstance.open();
+        } catch (err) {
+            console.error("Checkout initialization failed:", err);
+            setIsCheckingOut(false);
+        }
+    };
+
+    const getItemImage = (item) => {
+        // Variant specific image
+        if (typeof item?.variant === 'object' && item.variant?.images?.[0]?.url) {
+            return item.variant.images[0].url;
+        }
+        // Matched variant from product.variants
+        if (Array.isArray(item?.product?.variants)) {
+            const matchedVar = item.product.variants.find(v => v._id === item.variant || v._id === item.variant?._id);
+            if (matchedVar?.images?.[0]?.url) {
+                return matchedVar.images[0].url;
+            }
+        }
+        // Product primary image
+        if (item?.product?.images?.[0]?.url) {
             return item.product.images[0].url;
         }
-
+        if (typeof item?.product?.images?.[0] === 'string') {
+            return item.product.images[0];
+        }
         return "/arks_hero_editorial.png";
     };
 
     const getItemTitle = (item) => {
-        return item.product?.title || "ARKS Luxury Garment";
-    };
-
-    const getItemVariantDetails = (item) => {
-        const details = [];
-
-        const color = item.selectedColor;
-        const size = item.selectedSize;
-        if (color) details.push(`Color: ${color}`);
-        if (size) details.push(`Size: ${size}`);
-
-        return details.length
-            ? details.join(" • ")
-            : "Standard Edition";
+        return item?.product?.title || "ARKS Luxury Piece";
     };
 
     const getItemUnitPrice = (item) => {
-        return item.price?.amount ?? 0;
+        return Number(item?.price?.amount ?? item?.product?.price?.amount ?? 0);
     };
 
     const getItemCurrency = (item) => {
-        return item.price?.currency || "INR";
+        return item?.price?.currency || item?.product?.price?.currency || currency;
     };
 
-    const shippingCost = cart.totalPrice > 2000 ? 0 : 250;
+    const handleQtyIncrease = async (prodId, varId, key) => {
+        setActionLoading(key);
+        try {
+            await handleIncreaseCartItem({ productId: prodId, variantId: varId });
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const handleQtyDecrease = async (prodId, varId, currentQty, key) => {
+        setActionLoading(key);
+        try {
+            if (currentQty > 1) {
+                await handleDecreaseCartItem({ productId: prodId, variantId: varId });
+            } else {
+                await handleRemoveCartItem({ productId: prodId, variantId: varId });
+            }
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const handleRemove = async (prodId, varId, key) => {
+        setActionLoading(key);
+        try {
+            await handleRemoveCartItem({ productId: prodId, variantId: varId });
+        } finally {
+            setActionLoading(null);
+        }
+    };
 
     return (
-        <div style={{ background: t.surface, color: t.onSurface, fontFamily: "'Hanken Grotesk', sans-serif", minHeight: "100vh" }}>
-            <style>{`
-                    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-                    .arks-cart-container { animation: fadeIn 0.4s ease-out forwards; }
-                    .arks-nav-link:hover { color: ${t.primary} !important; }
-                    .arks-qty-btn:hover { background-color: ${t.outlineVariant} !important; }
-                    .arks-remove-btn:hover { color: ${t.accentRed} !important; border-color: ${t.accentRed} !important; }
-                    .arks-checkout-btn:hover { background-color: #1a3a5c !important; transform: translateY(-1px); }
-                    .arks-checkout-btn:active { transform: translateY(0); }
-                    .material-symbols-outlined {
-                        font-family: 'Material Symbols Outlined';
-                        font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
-                        vertical-align: middle; display: inline-block;
-                    }
-                `}</style>
-            {/* Navigation Bar */}
-            <nav style={{ position: "fixed", top: 0, width: "100%", zIndex: 50, background: "rgba(251,249,246,0.92)", backdropFilter: "blur(12px)", borderBottom: `1px solid ${t.outlineVariant}`, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 48px", height: 72, boxSizing: "border-box" }}>
-                <Link to="/" style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 700, color: t.primary, textDecoration: "none", letterSpacing: "-0.02em" }}>
-                    ARKS
-                </Link>
-                <div style={{ display: "flex", gap: 36 }} className="hidden md:flex">
-                    <Link to="/" className="arks-nav-link" style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "0.2em", color: t.onSurfaceVariant, textDecoration: "none" }}>Home</Link>
-                    <Link to="/" className="arks-nav-link" style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "0.2em", color: t.onSurfaceVariant, textDecoration: "none" }}>Collections</Link>
-                    <Link to="/" className="arks-nav-link" style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "0.2em", color: t.onSurfaceVariant, textDecoration: "none" }}>Atelier</Link>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-                    <span style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.15em", color: t.accentGold, fontWeight: 600 }}>
-                        {user?.fullname?.split(' ')[0] ? `Hi, ${user.fullname.split(' ')[0]}` : 'Guest Member'}
-                    </span>
-                    <button onClick={() => navigate('/cart')} style={{ background: "none", border: "none", cursor: "pointer", color: t.primary, position: "relative", display: "flex" }}>
-                        <span className="material-symbols-outlined" style={{ fontSize: 24 }}>shopping_bag</span>
-                        {cart.items.length > 0 && (
-                            <span style={{ position: "absolute", top: -4, right: -6, background: t.accentGold, color: t.primary, fontSize: 10, fontWeight: 700, borderRadius: "50%", width: 18, height: 18, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                                {cart.items.length}
-                            </span>
-                        )}
-                    </button>
-                </div>
-            </nav>
+        <div className="min-h-screen bg-[#fbf9f6] text-[#1b1c1a] font-sans pb-20 selection:bg-[#C9A96E]/30">
             {/* Main Content */}
-            <main style={{ paddingTop: 96, paddingBottom: 80 }} className="arks-cart-container">
-                <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 24px" }}>
+            <main className="pt-24 md:pt-28 max-w-[1440px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 box-border">
 
-                    {/* Header */}
-                    <div style={{ marginBottom: 40, borderBottom: `1px solid ${t.outlineVariant}`, paddingBottom: 24 }}>
-                        <span style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.3em", color: t.accentGold, fontWeight: 600, display: "block", marginBottom: 8 }}>
-                            Haute Couture Vault
-                        </span>
-                        <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: 36, fontWeight: 400, color: t.primary, margin: 0 }}>
+                {/* Page Header */}
+                <div className="mb-8 md:mb-12 border-b border-[#e4e2df] pb-6">
+                    <span className="text-[10px] sm:text-[11px] uppercase tracking-[0.3em] text-[#C9A96E] font-semibold block mb-2">
+                        Haute Couture Vault
+                    </span>
+                    <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2">
+                        <h1
+                            className="text-3xl sm:text-4xl md:text-5xl font-light text-[#0a192f] tracking-tight"
+                            style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                        >
                             Shopping Bag
                         </h1>
-                        <p style={{ fontSize: 13, color: t.onSurfaceVariant, marginTop: 8 }}>
-                            {cart.items.length === 1 ? '1 bespoke item reserved' : `${cart.items.length} bespoke items reserved`}
+                        <p className="text-xs sm:text-sm text-[#7A6E63]">
+                            {cartItems.length === 1
+                                ? '1 bespoke piece reserved'
+                                : `${cartItems.length} bespoke pieces reserved`}
                         </p>
                     </div>
-                    {cart.items.length === 0 ? (
-                        /* Empty Cart State */
-                        <div style={{ textAlign: "center", padding: "80px 24px", background: t.surfaceContainerLow, border: `1px solid ${t.outlineVariant}`, borderRadius: 4 }}>
-                            <span className="material-symbols-outlined" style={{ fontSize: 64, color: t.onSurfaceVariant, marginBottom: 16 }}>
+                </div>
+
+                {/* Empty State */}
+                {cartItems.length === 0 ? (
+                    <div className="text-center py-16 sm:py-24 px-6 bg-white border border-[#e4e2df] rounded-2xl max-w-2xl mx-auto shadow-xs my-8">
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-6 rounded-full bg-[#fbf9f6] border border-[#e4e2df] flex items-center justify-center text-[#7A6E63]">
+                            <span className="material-symbols-outlined text-3xl sm:text-4xl">
                                 shopping_bag
                             </span>
-                            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 400, color: t.primary, marginBottom: 12 }}>
-                                Your shopping bag is empty
-                            </h2>
-                            <p style={{ fontSize: 14, color: t.onSurfaceVariant, maxWidth: 420, margin: "0 auto 32px", lineHeight: 1.6 }}>
-                                Explore our latest runway collection and reserve handcrafted garments built for timeless style.
-                            </p>
-                            <Link to="/" style={{ display: "inline-block", padding: "16px 36px", background: t.primary, color: t.primaryText, textDecoration: "none", fontSize: 12, textTransform: "uppercase", letterSpacing: "0.2em", fontWeight: 600, transition: "background 0.3s" }}>
-                                Discover Collection
-                            </Link>
                         </div>
-                    ) : (
-                        /* Cart Grid with Items & Summary */
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 48 }} className="lg:grid-cols-12">
+                        <h2
+                            className="text-2xl sm:text-3xl font-light text-[#0a192f] mb-3"
+                            style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                        >
+                            Your shopping bag is empty
+                        </h2>
+                        <p className="text-xs sm:text-sm text-[#7A6E63] max-w-md mx-auto mb-8 leading-relaxed font-light">
+                            Explore our latest atelier runway collections and reserve handcrafted garments built for timeless distinction.
+                        </p>
+                        <Link
+                            to="/collection"
+                            className="inline-block px-8 py-3.5 bg-[#0a192f] text-white hover:bg-[#C9A96E] hover:text-[#0a192f] transition-all duration-300 text-[11px] uppercase tracking-[0.25em] font-semibold"
+                        >
+                            Discover The Vault
+                        </Link>
+                    </div>
+                ) : (
+                    /* Cart Layout Grid */
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
 
-                            {/* Items List (Left / Main Panel - 7 columns) */}
-                            <div className="lg:col-span-7" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-                                {cart.items?.map((item, index) => {
-                                    const unitPrice = getItemUnitPrice(item);
-                                    const itemCur = getItemCurrency(item);
-                                    const subtotal = unitPrice * (item.quantity || 1);
-                                    const variantText = getItemVariantDetails(item);
-                                    const prodId = typeof item.product === 'object' ? item.product?._id : item.product;
-                                    const varId = typeof item.variant === 'object' ? item.variant?._id : item.variant;
-                                    const variantPrice = getSelectedVariant(item).price?.amount;
+                        {/* Items List (7 cols on lg) */}
+                        <div className="lg:col-span-7 space-y-4 sm:space-y-6">
 
-                                    return (
-                                        <div key={item._id || `${prodId}-${varId}-${index}`} style={{ display: "flex", gap: 20, padding: 24, background: "#ffffff", border: `1px solid ${t.outlineVariant}`, borderRadius: 4, transition: "box-shadow 0.2s" }}>
+                            {/* Free Shipping Alert Pill */}
+                            <div className="bg-[#f5f3f0] border border-[#e4e2df] p-4 rounded-xl flex items-center gap-3">
+                                <span className="material-symbols-outlined text-[#C9A96E] text-xl">
+                                    {shippingCost === 0 ? "verified" : "local_shipping"}
+                                </span>
+                                <div className="flex-1">
+                                    <p className="text-xs font-medium text-[#1b1c1a]">
+                                        {shippingCost === 0 ? (
+                                            <span className="text-emerald-800 font-semibold">
+                                                ✓ Complimentary White-Glove Express Shipping unlocked
+                                            </span>
+                                        ) : (
+                                            <span>
+                                                Add <span className="font-semibold text-[#0a192f]">{currency} {amountToFreeShipping.toLocaleString('en-IN')}</span> more to qualify for <span className="text-[#C9A96E] font-semibold">Complimentary Shipping</span>
+                                            </span>
+                                        )}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Item Cards */}
+                            {cartItems.map((item, index) => {
+                                const unitPrice = getItemUnitPrice(item);
+                                const itemCur = getItemCurrency(item);
+                                const itemTotal = unitPrice * (item.quantity || 1);
+                                const prodId = typeof item.product === 'object' ? item.product?._id : item.product;
+                                const varId = typeof item.variant === 'object' ? item.variant?._id : item.variant;
+                                const itemKey = item._id || `${prodId}-${varId}-${index}`;
+                                const isItemLoading = actionLoading === itemKey;
+
+                                return (
+                                    <div
+                                        key={itemKey}
+                                        className={`bg-white border border-[#e4e2df] p-4 sm:p-6 rounded-xl transition-all duration-300 ${
+                                            isItemLoading ? "opacity-60 pointer-events-none" : ""
+                                        }`}
+                                    >
+                                        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
 
                                             {/* Product Image */}
-                                            <div style={{ width: 110, height: 140, flexShrink: 0, background: t.surfaceContainerLow, overflow: "hidden", borderRadius: 2, position: "relative" }}>
+                                            <div className="w-full sm:w-28 md:w-32 aspect-[3/4] sm:aspect-auto sm:h-36 flex-shrink-0 bg-[#f5f3f0] rounded-lg overflow-hidden border border-[#e4e2df]/60 relative">
                                                 <img
                                                     src={getItemImage(item)}
                                                     alt={getItemTitle(item)}
-                                                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                                    loading="lazy"
+                                                    className="w-full h-full object-cover"
                                                 />
                                             </div>
-                                            {/* Item Details & Controls */}
-                                            <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+
+                                            {/* Item Info & Actions */}
+                                            <div className="flex-1 flex flex-col justify-between gap-4">
                                                 <div>
-                                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
-                                                        <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 500, color: t.primary, margin: 0 }}>
-                                                            {getItemTitle(item)}
-                                                        </h3>
-                                                        <span style={{ fontSize: 15, fontWeight: 600, color: t.primary }}>
-                                                            {getItemCurrency(itemCur)}
-                                                        </span>
+                                                    <div className="flex justify-between items-start gap-4">
+                                                        <div>
+                                                            <span className="text-[9px] uppercase tracking-[0.2em] text-[#C9A96E] font-semibold block mb-1">
+                                                                {item.product?.category || "Haute Couture"}
+                                                            </span>
+                                                            <h3
+                                                                className="text-base sm:text-lg font-normal text-[#0a192f] leading-snug"
+                                                                style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                                                            >
+                                                                {getItemTitle(item)}
+                                                            </h3>
+                                                        </div>
+
+                                                        {/* Line Total */}
+                                                        <div className="text-right">
+                                                            <span className="text-sm sm:text-base font-semibold text-[#0a192f] whitespace-nowrap">
+                                                                {itemCur} {itemTotal.toLocaleString('en-IN')}
+                                                            </span>
+                                                            {item.quantity > 1 && (
+                                                                <p className="text-[10px] text-[#7A6E63] font-light">
+                                                                    {itemCur} {unitPrice.toLocaleString('en-IN')} each
+                                                                </p>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                    {variantText && (
-                                                        <p style={{ fontSize: 12, color: t.onSurfaceVariant, marginTop: 6, marginBottom: 0 }}>
-                                                            {variantText}
-                                                        </p>
-                                                    )}
 
-                                                    <p style={{ fontSize: 12, color: t.onSurfaceVariant, marginTop: 4 }}>
-                                                        Unit Price: <span style={{ fontWeight: 500, color: t.onSurface }}>{getItemUnitPrice(item)}</span>
-                                                    </p>
-                                                    {
-                                                        unitPrice !== variantPrice && (
-                                                            <>
-                                                                {unitPrice > variantPrice
-                                                                    ? <p className="text-[10px] uppercase tracking-[0.15em] mb-4 mt-3 text-green-800 font-bold " > you will get this at {variantPrice} {itemCur} save {Math.abs(variantPrice - unitPrice)}.🎉  </p>
-                                                                    : <p className="text-[10px] uppercase tracking-[0.15em] mb-4 mt-3 text-red-600 font-bold" > Warning this product will cost you {Math.abs(variantPrice - unitPrice)} more.  </p>
-                                                                }
-                                                            </>
-                                                        )
-                                                    }
-
+                                                    {/* Attributes / Color / Size */}
+                                                    <div className="flex flex-wrap gap-2 mt-3">
+                                                        {item.selectedColor && (
+                                                            <span className="text-[10px] uppercase tracking-wider px-2.5 py-1 bg-[#f5f3f0] text-[#1b1c1a] border border-[#e4e2df] rounded-md font-medium">
+                                                                Color: {item.selectedColor}
+                                                            </span>
+                                                        )}
+                                                        {item.selectedSize && (
+                                                            <span className="text-[10px] uppercase tracking-wider px-2.5 py-1 bg-[#f5f3f0] text-[#1b1c1a] border border-[#e4e2df] rounded-md font-medium">
+                                                                Size: {item.selectedSize}
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                {/* Bottom Row: Quantity controls & Remove */}
-                                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 16 }}>
-                                                    {/* Quantity Control */}
-                                                    <div style={{ display: "flex", alignItems: "center", border: `1px solid ${t.outlineVariant}`, borderRadius: 2, overflow: "hidden" }}>
+
+                                                {/* Bottom Row: Quantity Controls & Remove Action */}
+                                                <div className="flex items-center justify-between pt-3 border-t border-[#e4e2df]/60 flex-wrap gap-3">
+                                                    {/* Quantity Stepper */}
+                                                    <div className="flex items-center border border-[#d0c5b5] rounded-md overflow-hidden bg-[#fbf9f6]">
                                                         <button
-                                                            className="arks-qty-btn"
-                                                            onClick={() => {
-                                                                if (item.quantity > 1) {
-                                                                    handleDecreaseCartItem({ productId: prodId, variantId: varId });
-                                                                } else {
-                                                                    handleRemoveCartItem({ productId: prodId, variantId: varId });
-                                                                }
-                                                            }}
-                                                            style={{ width: 32, height: 32, background: "none", border: "none", cursor: "pointer", fontSize: 16, color: t.onSurface, transition: "background 0.2s" }}
+                                                            type="button"
+                                                            onClick={() => handleQtyDecrease(prodId, varId, item.quantity, itemKey)}
+                                                            className="w-8 h-8 flex items-center justify-center text-sm font-medium hover:bg-[#e4e2df] active:bg-[#d0c5b5] transition-colors"
+                                                            aria-label="Decrease quantity"
                                                         >
                                                             −
                                                         </button>
-                                                        <span style={{ width: 36, textAlign: "center", fontSize: 13, fontWeight: 600 }}>
+                                                        <span className="w-9 text-center text-xs font-semibold text-[#0a192f]">
                                                             {item.quantity}
                                                         </span>
                                                         <button
-                                                            className="arks-qty-btn"
-                                                            onClick={() => handleIncreaseCartItem({ productId: prodId, variantId: varId })}
-                                                            style={{ width: 32, height: 32, background: "none", border: "none", cursor: "pointer", fontSize: 16, color: t.onSurface, transition: "background 0.2s" }}
+                                                            type="button"
+                                                            onClick={() => handleQtyIncrease(prodId, varId, itemKey)}
+                                                            className="w-8 h-8 flex items-center justify-center text-sm font-medium hover:bg-[#e4e2df] active:bg-[#d0c5b5] transition-colors"
+                                                            aria-label="Increase quantity"
                                                         >
                                                             +
                                                         </button>
                                                     </div>
+
                                                     {/* Remove Button */}
                                                     <button
-                                                        className="arks-remove-btn"
-                                                        onClick={() => handleRemoveCartItem({ productId: prodId, variantId: varId })}
-                                                        style={{ background: "none", border: `1px solid ${t.outlineVariant}`, padding: "6px 12px", borderRadius: 2, cursor: "pointer", fontSize: 11, textTransform: "uppercase", letterSpacing: "0.1em", color: t.onSurfaceVariant, transition: "all 0.2s" }}
+                                                        type="button"
+                                                        onClick={() => handleRemove(prodId, varId, itemKey)}
+                                                        className="text-[10px] sm:text-[11px] uppercase tracking-[0.15em] text-[#7A6E63] hover:text-red-700 font-medium py-1 px-2.5 border border-transparent hover:border-red-200 hover:bg-red-50/50 rounded transition-all"
                                                     >
                                                         Remove
                                                     </button>
                                                 </div>
                                             </div>
                                         </div>
-                                    );
-                                })}
-                            </div>
-                            {/* Order Summary (Right Panel - 5 columns) */}
-                            <div className="lg:col-span-5">
-                                <div style={{ position: "sticky", top: 96, background: "#ffffff", border: `1px solid ${t.outlineVariant}`, padding: 32, borderRadius: 4 }}>
-                                    <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 500, color: t.primary, marginTop: 0, marginBottom: 24, paddingBottom: 16, borderBottom: `1px solid ${t.outlineVariant}` }}>
-                                        Order Summary
-                                    </h2>
-                                    <div style={{ display: "flex", flexDirection: "column", gap: 16, fontSize: 14 }}>
-                                        <div style={{ display: "flex", justifyContent: "space-between" }}>
-                                            <span style={{ color: t.onSurfaceVariant }}>Bag Subtotal</span>
-                                            <span style={{ fontWeight: 600, color: t.onSurface }}>{cart.totalPrice}</span>
-                                        </div>
-                                        <div style={{ display: "flex", justifyContent: "space-between" }}>
-                                            <span style={{ color: t.onSurfaceVariant }}>Express Shipping</span>
-                                            <span style={{ fontWeight: 600, color: shippingCost === 0 ? "#2e7d32" : t.onSurface }}>
-                                                {shippingCost === 0 ? "Complimentary" : shippingCost + " " + "Rs"}
-                                            </span>
-                                        </div>
-                                        <div style={{ display: "flex", justifyContent: "space-between" }}>
-                                            <span style={{ color: t.onSurfaceVariant }}>Duties & Taxes</span>
-                                            <span style={{ color: t.onSurfaceVariant, fontSize: 12 }}>Calculated at checkout</span>
-                                        </div>
-                                        <div style={{ borderTop: `1px solid ${t.outlineVariant}`, paddingTop: 20, marginTop: 8, display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                                            <div>
-                                                <span style={{ fontSize: 16, fontWeight: 700, color: t.primary, display: "block" }}>Total</span>
-                                                <span style={{ fontSize: 11, color: t.onSurfaceVariant }}>Includes VAT if applicable</span>
-                                            </div>
-                                            <span style={{ fontSize: 24, fontWeight: 700, color: t.primary }}>
-                                                {cart.totalPrice + shippingCost + " " + cart.currency}
-                                            </span>
-                                        </div>
                                     </div>
-                                    {/* Checkout CTA */}
-                                    <button
-                                        className="arks-checkout-btn"
-                                        onClick={handleCheckOut}
-                                        style={{ width: "100%", padding: "18px 0", background: t.primary, color: t.primaryText, border: "none", marginTop: 32, fontSize: 12, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.2em", cursor: "pointer", transition: "all 0.3s" }}
-                                    >
-                                        Proceed to Checkout
-                                    </button>
-                                    {/* Guarantees */}
-                                    <div style={{ marginTop: 24, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, paddingTop: 20, borderTop: `1px solid ${t.outlineVariant}` }}>
-                                        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: t.onSurfaceVariant }}>
-                                            <span className="material-symbols-outlined" style={{ fontSize: 18, color: t.accentGold }}>lock</span>
-                                            <span>Secure 256-bit Checkout</span>
+                                );
+                            })}
+                        </div>
+
+                        {/* Order Summary Box (5 cols on lg) */}
+                        <div className="lg:col-span-5 lg:sticky lg:top-28">
+                            <div className="bg-white border border-[#e4e2df] p-6 sm:p-8 rounded-2xl shadow-xs">
+                                <h2
+                                    className="text-xl sm:text-2xl font-light text-[#0a192f] pb-4 mb-6 border-b border-[#e4e2df]"
+                                    style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                                >
+                                    Summary of Reservation
+                                </h2>
+
+                                <div className="space-y-4 text-xs sm:text-sm">
+                                    <div className="flex justify-between items-center text-[#7A6E63]">
+                                        <span>Vault Subtotal</span>
+                                        <span className="font-semibold text-[#0a192f]">
+                                            {currency} {totalPrice.toLocaleString('en-IN')}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex justify-between items-center text-[#7A6E63]">
+                                        <span>Express Courier</span>
+                                        <span className={`font-semibold ${shippingCost === 0 ? "text-emerald-800" : "text-[#0a192f]"}`}>
+                                            {shippingCost === 0 ? "Complimentary" : `${currency} ${shippingCost.toLocaleString('en-IN')}`}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex justify-between items-center text-[#7A6E63]">
+                                        <span>Duties & Insurance</span>
+                                        <span className="text-[#7A6E63] text-[11px]">Included</span>
+                                    </div>
+
+                                    <div className="border-t border-[#e4e2df] pt-4 mt-2 flex justify-between items-baseline">
+                                        <div>
+                                            <span className="text-sm sm:text-base font-bold text-[#0a192f] block">
+                                                Estimated Total
+                                            </span>
+                                            <span className="text-[10px] text-[#7A6E63] font-light">
+                                                All taxes and packaging included
+                                            </span>
                                         </div>
-                                        <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: t.onSurfaceVariant }}>
-                                            <span className="material-symbols-outlined" style={{ fontSize: 18, color: t.accentGold }}>local_shipping</span>
-                                            <span>Insured Express Delivery</span>
-                                        </div>
+                                        <span className="text-xl sm:text-2xl font-bold text-[#0a192f]">
+                                            {currency} {finalTotal.toLocaleString('en-IN')}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Checkout CTA */}
+                                <button
+                                    type="button"
+                                    onClick={handleCheckOut}
+                                    disabled={isCheckingOut || cartItems.length === 0}
+                                    className="w-full mt-6 py-4 bg-[#0a192f] text-white hover:bg-[#C9A96E] hover:text-[#0a192f] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 text-xs uppercase tracking-[0.2em] font-semibold flex items-center justify-center gap-2 rounded-none"
+                                >
+                                    {isCheckingOut ? (
+                                        <>
+                                            <span className="inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                            <span>Processing Atelier Order…</span>
+                                        </>
+                                    ) : (
+                                        "Proceed to Checkout"
+                                    )}
+                                </button>
+
+                                {/* Trust Guarantees */}
+                                <div className="grid grid-cols-2 gap-3 pt-6 mt-6 border-t border-[#e4e2df] text-[10px] sm:text-[11px] text-[#7A6E63]">
+                                    <div className="flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-[#C9A96E] text-base">
+                                            lock
+                                        </span>
+                                        <span>256-Bit Encrypted</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-[#C9A96E] text-base">
+                                            verified_user
+                                        </span>
+                                        <span>Authenticity Guaranteed</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    )}
-                </div>
+
+                    </div>
+                )}
             </main>
-            {/* Simple Footer */}
-            <footer style={{ background: t.surfaceContainerLow, borderTop: `1px solid ${t.outlineVariant}`, padding: "32px 48px", textAlign: "center", fontSize: 11, color: t.onSurfaceVariant, letterSpacing: "0.08em" }}>
-                © {new Date().getFullYear()} ARKS STUDIO. ALL RIGHTS RESERVED.
-            </footer>
         </div>
     );
 }

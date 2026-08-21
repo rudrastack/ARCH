@@ -47,3 +47,8 @@ export async function CreateProductVariants(productId, newProductVariant) {
 
     return response.data
 }
+
+export async function DeleteProduct(productId) {
+    const response = await productApiInstance.delete(`/seller/delete/${productId}`)
+    return response.data
+}
