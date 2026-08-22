@@ -26,10 +26,7 @@ export const Login = () => {
                 password: formData.password,
             });
 
-            console.log("User:", user);
-
             if (user?.role === "buyer") {
-                console.log("Navigating...");
                 navigate("/");
             } else if (user?.role === "seller") {
                 navigate("/seller/get");

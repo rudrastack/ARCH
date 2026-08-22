@@ -78,7 +78,6 @@ export default function GetSellerProducts() {
         e.stopPropagation();
         const productTitle = products.find(p => p._id === productId)?.title;
         const product = await handleDeleteProduct(productId)
-        console.log(product);
 
         // Remove locally from state
         setProducts(prev => prev.filter(p => p._id !== productId));
@@ -126,7 +125,6 @@ export default function GetSellerProducts() {
             [productId]:
                 ((prev[productId] || 0) - 1 + totalImages) % totalImages,
         }));
-        console.log(productId);
     };
 
     const IcArrowLeft = () => (
