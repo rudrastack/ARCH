@@ -103,7 +103,7 @@ export default function Cart() {
                 key: "rzp_test_TQWa86qmNQxtTo",
                 amount: response.order.amount,
                 currency: response.order.currency || currency,
-                name: "ARKS Atelier",
+                name: "ARCH Atelier",
                 description: "Luxury Haute Couture Reservation",
                 order_id: response.order.id,
                 handler: async (paymentResponse) => {
@@ -194,7 +194,7 @@ export default function Cart() {
         }
 
         // Title and Category
-        const title = fullProduct?.title || item.product?.title || "ARKS Haute Couture";
+        const title = fullProduct?.title || item.product?.title || "ARCH Haute Couture";
         const category = fullProduct?.category || item.product?.category || "Haute Couture";
 
         // Price

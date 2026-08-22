@@ -5,7 +5,7 @@ const client = new ImageKit({
     privateKey: config.IMAGEKIT_PVT_KEY,
 });
 
-export async function uploadFile({ buffer, filename, folder = "ARKS" }) {
+export async function uploadFile({ buffer, filename, folder = "ARCH" }) {
     const result = await client.files.upload({
         file: await ImageKit.toFile(buffer),
         fileName: filename,

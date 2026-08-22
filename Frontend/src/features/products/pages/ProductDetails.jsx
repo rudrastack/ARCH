@@ -570,8 +570,8 @@ export default function ProductDetails() {
                         </div>
                         <div>
                             <p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.25em", textTransform: "uppercase", color: t.secondary, marginBottom: 12 }}>The Maison</p>
-                            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(22px,3vw,32px)", fontWeight: 400, color: t.primary, marginBottom: 16 }}>ARKS Heritage</h2>
-                            <p style={{ fontSize: 15, lineHeight: 1.7, color: t.onSurfaceVariant }}>Founded on the principles of quiet luxury and artisanal precision, ARKS has been redefining the modern wardrobe. We believe that true quality is found in the details — the reinforced seam, the hand-finished buttonhole, the perfect weight of a drape.</p>
+                            <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(22px,3vw,32px)", fontWeight: 400, color: t.primary, marginBottom: 16 }}>ARCH Heritage</h2>
+                            <p style={{ fontSize: 15, lineHeight: 1.7, color: t.onSurfaceVariant }}>Founded on the principles of quiet luxury and artisanal precision, ARCH has been redefining the modern wardrobe. We believe that true quality is found in the details — the reinforced seam, the hand-finished buttonhole, the perfect weight of a drape.</p>
                         </div>
                     </div>
                 </section>
@@ -581,8 +581,8 @@ export default function ProductDetails() {
             <footer className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 flex-wrap px-4 sm:px-8 lg:px-16 py-10"
                 style={{ background: t.surface, borderTop: `1px solid ${t.outlineVariant}` }}>
                 <div>
-                    <a href="/" style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: t.primary, textDecoration: "none" }}>ARKS</a>
-                    <p style={{ fontSize: 11, color: t.onSurfaceVariant, letterSpacing: "0.06em", textTransform: "uppercase", marginTop: 8, marginBottom: 0 }}>© 2026 ARKS. All Rights Reserved.</p>
+                    <a href="/" style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: t.primary, textDecoration: "none" }}>ARCH</a>
+                    <p style={{ fontSize: 11, color: t.onSurfaceVariant, letterSpacing: "0.06em", textTransform: "uppercase", marginTop: 8, marginBottom: 0 }}>© 2026 ARCH. All Rights Reserved.</p>
                 </div>
                 <div className="flex flex-wrap gap-5 sm:gap-8">
                     {["Shipping", "Returns", "Size Guide", "Newsletter", "Privacy", "Terms"].map(l => (
