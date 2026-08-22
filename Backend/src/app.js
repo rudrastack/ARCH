@@ -10,8 +10,19 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { config } from './config/config.js';
 
 const app = express();
+const allowedOrigins = [
+    "http://localhost:5173",
+    "https://arch-one-rose.vercel.app"
+];
+
 app.use(cors({
-    origin: 'http://localhost:5173',
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    },
     credentials: true
 }));
 
@@ -26,7 +37,7 @@ app.use(passport.initialize());
 passport.use(new GoogleStrategy({
   clientID: config.GOOGLE_CLIENT_ID,
   clientSecret: config.GOOGLE_CLIENT_SECRET,
-  callbackURL: '/api/auth/google/callback'
+callbackURL: `${config.BACKEND_URL}/api/auth/google/callback`
 }, (accessToken, refreshToken, profile, done) => {
   return done(null, profile);
 }));
