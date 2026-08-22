@@ -33,7 +33,7 @@ export default function Collection() {
         }
         fetchProducts()
         return () => { cancelled = true }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     // ── Debounced search (300ms) ──────────────────────────────────────
@@ -90,7 +90,7 @@ export default function Collection() {
                 {/* ── PAGE HEADER ─────────────────────────────────────── */}
                 <div className="border-b border-[#e4e2df] pb-6">
                     <p className="text-[10px] uppercase tracking-[0.3em] text-[#C9A96E] font-medium mb-2">
-                        ARKS Studio
+                        ARCH Studio
                     </p>
                     <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-2">
                         <h1

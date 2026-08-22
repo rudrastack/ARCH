@@ -3,10 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { setError, setItems, addItems, removeCartItem, increaseCartItem, decreaseCartItem } from "../state/cart.slice";
 
 export const useCart = () => {
-
-    const dispatch = useDispatch();;
+    const dispatch = useDispatch();
     const error = useSelector((state) => state.cart.error);
-
 
     async function handleAddToCart({ productId, variantId, quantity = 1, selectedColor, selectedSize }) {
         try {
@@ -19,55 +17,71 @@ export const useCart = () => {
             });
 
             await handleGetCart();
-
             return data;
-
         } catch (err) {
-            console.error("ADD TO CART ERROR:", err.response?.data);
-
-
+            console.error("ADD TO CART ERROR:", err.response?.data || err);
             throw err;
         }
     }
+
     async function handleGetCart() {
-        const data = await getCart();
-        dispatch(setItems(data.cart));
-        return data.cart;
-
+        try {
+            const data = await getCart();
+            const cartData = data?.cart || data || {};
+            dispatch(setItems(cartData));
+            return cartData;
+        } catch (err) {
+            console.error("GET CART ERROR:", err.response?.data || err);
+            return null;
+        }
     }
 
-    async function handleRemoveCartItem({ productId, variantId }) {
-        const data = await removeCartItemAPI({ productId, variantId })
-        dispatch(removeCartItem({ productId, variantId }))
-        await handleGetCart();
-
-        return data
+    async function handleRemoveCartItem({ productId, variantId, color, size, itemId }) {
+        try {
+            dispatch(removeCartItem({ productId, variantId, color, size, itemId }));
+            const data = await removeCartItemAPI({ productId, variantId, color, size });
+            await handleGetCart();
+            return data;
+        } catch (err) {
+            console.error("REMOVE CART ITEM ERROR:", err.response?.data || err);
+            await handleGetCart();
+            throw err;
+        }
     }
 
-    async function handleIncreaseCartItem({ productId, variantId }) {
-        const data = await increaseCartItemAPI({ productId, variantId })
-        dispatch(increaseCartItem({ productId, variantId }))
-        await handleGetCart();
-
-        return data
+    async function handleIncreaseCartItem({ productId, variantId, color, size, itemId }) {
+        try {
+            dispatch(increaseCartItem({ productId, variantId, color, size, itemId }));
+            const data = await increaseCartItemAPI({ productId, variantId, color, size });
+            await handleGetCart();
+            return data;
+        } catch (err) {
+            console.error("INCREASE CART ITEM ERROR:", err.response?.data || err);
+            await handleGetCart();
+            throw err;
+        }
     }
 
-    async function handleDecreaseCartItem({ productId, variantId }) {
-        const data = await decreaseCartItemAPI({ productId, variantId })
-        dispatch(decreaseCartItem({ productId, variantId }))
-        await handleGetCart();
-
-        return data
+    async function handleDecreaseCartItem({ productId, variantId, color, size, itemId }) {
+        try {
+            dispatch(decreaseCartItem({ productId, variantId, color, size, itemId }));
+            const data = await decreaseCartItemAPI({ productId, variantId, color, size });
+            await handleGetCart();
+            return data;
+        } catch (err) {
+            console.error("DECREASE CART ITEM ERROR:", err.response?.data || err);
+            await handleGetCart();
+            throw err;
+        }
     }
 
     async function handleCartOrder() {
         const data = await cartOrderAPI();
-        console.log(data);
         return data;
     }
+
     async function handleVerifyOrder({ razorpay_order_id, razorpay_payment_id, razorpay_signature }) {
         const data = await verifyOrderAPI({ razorpay_order_id, razorpay_payment_id, razorpay_signature });
-        console.log("VERIFY API DATA:", data);
         return data.success;
     }
 

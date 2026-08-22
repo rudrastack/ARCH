@@ -11,7 +11,7 @@
   }
 }
 
-/* Warm Off-White / Ivory Theme (arks.club style) */
+/* Warm Off-White / Ivory Theme (arch.club style) */
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: #fbf9f6;
@@ -24,8 +24,8 @@ body {
 /* Custom Cursor Hiding on Fine Pointers */
 @media (pointer: fine) {
 
-  .arks-landing,
-  .arks-landing * {
+  .arch-landing,
+  .arch-landing * {
     cursor: none !important;
   }
 }
@@ -136,7 +136,7 @@ html.lenis body {
 }
 
 /* Nav link hover */
-.arks-nav-a:hover {
+.arch-nav-a:hover {
   color: #0a192f !important;
 }
 
@@ -158,7 +158,7 @@ html.lenis body {
 }
 
 /* Mobile + Tablet Navigation */
-.arks-mobile-nav {
+.arch-mobile-nav {
   position: fixed;
   top: 72px;
   left: 0;
@@ -187,7 +187,7 @@ html.lenis body {
     visibility 0.28s ease;
 }
 
-.arks-mobile-nav.open {
+.arch-mobile-nav.open {
   transform: translateY(0);
   opacity: 1;
   visibility: visible;
@@ -197,27 +197,27 @@ html.lenis body {
 
 
 /* Product Details – button hover helpers */
-.arks-add-btn:hover {
+.arch-add-btn:hover {
   background: #1a3a5c !important;
 }
 
-.arks-buy-btn:hover {
+.arch-buy-btn:hover {
   background: #f3f3f4 !important;
 }
 
-.arks-thumb {
+.arch-thumb {
   transition: opacity 0.25s, border-color 0.25s;
 }
 
-.arks-thumb:hover {
+.arch-thumb:hover {
   opacity: 1 !important;
 }
 
-.arks-size:hover {
+.arch-size:hover {
   border-color: #0a192f !important;
 }
 
-.arks-tab:hover {
+.arch-tab:hover {
   color: #0a192f !important;
 }
 

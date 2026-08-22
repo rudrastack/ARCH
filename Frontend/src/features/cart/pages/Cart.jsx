@@ -1,8 +1,33 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useCart } from '../hook/useCart';
+import { useProduct } from '../../products/hook/useProduct';
 import { useNavigate, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useRazorpay } from "react-razorpay";
+
+// ── Helper: Extract clean string ID from MongoDB ObjectId, $oid, or string ──
+const extractId = (val) => {
+    if (!val) return "";
+    if (typeof val === 'string') return val;
+    if (val.$oid) return String(val.$oid);
+    if (val._id) return extractId(val._id);
+    return String(val);
+};
+
+// ── Helper: Normalize string/array attribute value ──────────────────────────
+const getAttrString = (attr) => {
+    if (!attr) return "";
+    if (Array.isArray(attr)) return attr.join(", ");
+    if (typeof attr === 'string') return attr;
+    return String(attr);
+};
+
+const normalizeUrl = (img) => {
+    if (!img) return null;
+    if (typeof img === 'string') return img;
+    if (typeof img === 'object' && img.url) return img.url;
+    return null;
+};
 
 export default function Cart() {
     const {
@@ -14,21 +39,45 @@ export default function Cart() {
         handleDecreaseCartItem,
     } = useCart();
 
+    const { handleGetAllProducts } = useProduct();
+
     const navigate = useNavigate();
     const cart = useSelector(state => state.cart || { items: [], totalPrice: 0, currency: 'INR' });
+    const allProducts = useSelector(state => state.product?.products || []);
     const user = useSelector(state => state.auth?.user);
     const { Razorpay } = useRazorpay();
 
     const [isCheckingOut, setIsCheckingOut] = useState(false);
-    const [actionLoading, setActionLoading] = useState(null); // tracking item id being updated
+    const [actionLoading, setActionLoading] = useState(null); // tracking item key being updated
 
+    // Fetch cart and all products catalogue on mount
     useEffect(() => {
         handleGetCart();
+        handleGetAllProducts();
     }, []);
 
+    // ── Build fast lookup map for all products ─────────────────────────────
+    const productsMap = useMemo(() => {
+        const map = new Map();
+        allProducts.forEach(p => {
+            const id = extractId(p._id);
+            if (id) map.set(id, p);
+        });
+        return map;
+    }, [allProducts]);
+
     const cartItems = cart.items || [];
-    const totalPrice = Number(cart.totalPrice || 0);
-    const currency = cart.currency || 'INR';
+
+    // Calculate total price accurately across all items
+    const totalPrice = useMemo(() => {
+        if (cart.totalPrice && cart.totalPrice > 0) return Number(cart.totalPrice);
+        return cartItems.reduce((sum, item) => {
+            const unit = Number(item.price?.amount || 0);
+            return sum + (unit * (item.quantity || 1));
+        }, 0);
+    }, [cart.totalPrice, cartItems]);
+
+    const currency = cart.currency || cartItems[0]?.price?.currency || 'INR';
     const shippingThreshold = 2000;
     const shippingCost = totalPrice > shippingThreshold || totalPrice === 0 ? 0 : 250;
     const amountToFreeShipping = Math.max(0, shippingThreshold - totalPrice);
@@ -92,66 +141,118 @@ export default function Cart() {
         }
     };
 
-    const getItemImage = (item) => {
-        // Variant specific image
-        if (typeof item?.variant === 'object' && item.variant?.images?.[0]?.url) {
-            return item.variant.images[0].url;
-        }
-        // Matched variant from product.variants
-        if (Array.isArray(item?.product?.variants)) {
-            const matchedVar = item.product.variants.find(v => v._id === item.variant || v._id === item.variant?._id);
-            if (matchedVar?.images?.[0]?.url) {
-                return matchedVar.images[0].url;
+    // ── Helper: Resolve Full Product & Variant for any Cart Item ───────────
+    const resolveItemDetails = useCallback((item) => {
+        const prodId = extractId(item.product);
+        const varId = extractId(item.variant);
+        const itemId = extractId(item._id);
+
+        // Find product from catalogue map or populated item.product
+        const fullProduct = productsMap.get(prodId) || (typeof item.product === 'object' ? item.product : null);
+
+        // Find variant from fullProduct.variants or item.variant
+        let matchedVariant = null;
+        if (fullProduct?.variants?.length) {
+            // 1. Match by variant ID
+            if (varId) {
+                matchedVariant = fullProduct.variants.find(v => extractId(v._id) === varId);
+            }
+            // 2. Match by color and size if variantId not matched
+            if (!matchedVariant && (item.selectedColor || item.selectedSize)) {
+                matchedVariant = fullProduct.variants.find(v => {
+                    const vColor = getAttrString(v.attributes?.Color || v.attributes?.color).toLowerCase();
+                    const vSize = getAttrString(v.attributes?.Size || v.attributes?.size).toLowerCase();
+                    const colorMatch = !item.selectedColor || vColor.includes(item.selectedColor.toLowerCase());
+                    const sizeMatch = !item.selectedSize || vSize.includes(item.selectedSize.toLowerCase());
+                    return colorMatch && sizeMatch;
+                });
+            }
+            // 3. Match by color only
+            if (!matchedVariant && item.selectedColor) {
+                matchedVariant = fullProduct.variants.find(v => {
+                    const vColor = getAttrString(v.attributes?.Color || v.attributes?.color).toLowerCase();
+                    return vColor.includes(item.selectedColor.toLowerCase());
+                });
             }
         }
-        // Product primary image
-        if (item?.product?.images?.[0]?.url) {
-            return item.product.images[0].url;
+
+        // Fallback to item.variant if it is an object
+        if (!matchedVariant && typeof item.variant === 'object' && item.variant !== null) {
+            matchedVariant = item.variant;
         }
-        if (typeof item?.product?.images?.[0] === 'string') {
-            return item.product.images[0];
+
+        // Determine variant image
+        let image = null;
+        if (matchedVariant?.images?.length) {
+            image = normalizeUrl(matchedVariant.images[0]);
         }
-        return "/arks_hero_editorial.png";
-    };
+        if (!image && fullProduct?.images?.length) {
+            image = normalizeUrl(fullProduct.images[0]);
+        }
+        if (!image) {
+            image = "/arks_hero_editorial.png";
+        }
 
-    const getItemTitle = (item) => {
-        return item?.product?.title || "ARKS Luxury Piece";
-    };
+        // Title and Category
+        const title = fullProduct?.title || item.product?.title || "ARKS Haute Couture";
+        const category = fullProduct?.category || item.product?.category || "Haute Couture";
 
-    const getItemUnitPrice = (item) => {
-        return Number(item?.price?.amount ?? item?.product?.price?.amount ?? 0);
-    };
+        // Price
+        const unitPrice = Number(
+            item.price?.amount ??
+            matchedVariant?.price?.amount ??
+            fullProduct?.price?.amount ??
+            0
+        );
 
-    const getItemCurrency = (item) => {
-        return item?.price?.currency || item?.product?.price?.currency || currency;
-    };
+        const itemCurrency = item.price?.currency || matchedVariant?.price?.currency || fullProduct?.price?.currency || currency;
 
-    const handleQtyIncrease = async (prodId, varId, key) => {
+        // Color and Size
+        const color = item.selectedColor || getAttrString(matchedVariant?.attributes?.Color || matchedVariant?.attributes?.color);
+        const size = item.selectedSize || getAttrString(matchedVariant?.attributes?.Size || matchedVariant?.attributes?.size);
+
+        return {
+            prodId,
+            varId,
+            itemId,
+            title,
+            category,
+            image,
+            unitPrice,
+            itemCurrency,
+            color,
+            size,
+            matchedVariant,
+            fullProduct
+        };
+    }, [productsMap, currency]);
+
+    const handleQtyIncrease = async ({ prodId, varId, color, size, itemId, key }) => {
         setActionLoading(key);
         try {
-            await handleIncreaseCartItem({ productId: prodId, variantId: varId });
+            await handleIncreaseCartItem({ productId: prodId, variantId: varId, color, size, itemId });
         } finally {
             setActionLoading(null);
         }
     };
 
-    const handleQtyDecrease = async (prodId, varId, currentQty, key) => {
+    const handleQtyDecrease = async ({ prodId, varId, currentQty, color, size, itemId, key }) => {
         setActionLoading(key);
         try {
             if (currentQty > 1) {
-                await handleDecreaseCartItem({ productId: prodId, variantId: varId });
+                await handleDecreaseCartItem({ productId: prodId, variantId: varId, color, size, itemId });
             } else {
-                await handleRemoveCartItem({ productId: prodId, variantId: varId });
+                await handleRemoveCartItem({ productId: prodId, variantId: varId, color, size, itemId });
             }
         } finally {
             setActionLoading(null);
         }
     };
 
-    const handleRemove = async (prodId, varId, key) => {
+    const handleRemove = async ({ prodId, varId, color, size, itemId, key }) => {
         setActionLoading(key);
         try {
-            await handleRemoveCartItem({ productId: prodId, variantId: varId });
+            await handleRemoveCartItem({ productId: prodId, variantId: varId, color, size, itemId });
         } finally {
             setActionLoading(null);
         }
@@ -233,30 +334,27 @@ export default function Cart() {
                                 </div>
                             </div>
 
-                            {/* Item Cards */}
+                            {/* Item Cards - uniquely keyed by item _id or prodId + varId + color + size */}
                             {cartItems.map((item, index) => {
-                                const unitPrice = getItemUnitPrice(item);
-                                const itemCur = getItemCurrency(item);
+                                const details = resolveItemDetails(item);
+                                const { prodId, varId, itemId, title, category, image, unitPrice, itemCurrency, color, size } = details;
                                 const itemTotal = unitPrice * (item.quantity || 1);
-                                const prodId = typeof item.product === 'object' ? item.product?._id : item.product;
-                                const varId = typeof item.variant === 'object' ? item.variant?._id : item.variant;
-                                const itemKey = item._id || `${prodId}-${varId}-${index}`;
+                                const itemKey = itemId || `${prodId}-${varId}-${color}-${size}-${index}`;
                                 const isItemLoading = actionLoading === itemKey;
 
                                 return (
                                     <div
                                         key={itemKey}
-                                        className={`bg-white border border-[#e4e2df] p-4 sm:p-6 rounded-xl transition-all duration-300 ${
-                                            isItemLoading ? "opacity-60 pointer-events-none" : ""
-                                        }`}
+                                        className={`bg-white border border-[#e4e2df] p-4 sm:p-6 rounded-xl transition-all duration-300 ${isItemLoading ? "opacity-60 pointer-events-none" : ""
+                                            }`}
                                     >
                                         <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
 
-                                            {/* Product Image */}
+                                            {/* Variant-Specific Image */}
                                             <div className="w-full sm:w-28 md:w-32 aspect-[3/4] sm:aspect-auto sm:h-36 flex-shrink-0 bg-[#f5f3f0] rounded-lg overflow-hidden border border-[#e4e2df]/60 relative">
                                                 <img
-                                                    src={getItemImage(item)}
-                                                    alt={getItemTitle(item)}
+                                                    src={image}
+                                                    alt={`${title} - ${color || ''}`}
                                                     loading="lazy"
                                                     className="w-full h-full object-cover"
                                                 />
@@ -268,53 +366,61 @@ export default function Cart() {
                                                     <div className="flex justify-between items-start gap-4">
                                                         <div>
                                                             <span className="text-[9px] uppercase tracking-[0.2em] text-[#C9A96E] font-semibold block mb-1">
-                                                                {item.product?.category || "Haute Couture"}
+                                                                {category}
                                                             </span>
                                                             <h3
                                                                 className="text-base sm:text-lg font-normal text-[#0a192f] leading-snug"
                                                                 style={{ fontFamily: "'Cormorant Garamond', serif" }}
                                                             >
-                                                                {getItemTitle(item)}
+                                                                {title}
                                                             </h3>
                                                         </div>
 
                                                         {/* Line Total */}
                                                         <div className="text-right">
                                                             <span className="text-sm sm:text-base font-semibold text-[#0a192f] whitespace-nowrap">
-                                                                {itemCur} {itemTotal.toLocaleString('en-IN')}
+                                                                {itemCurrency} {itemTotal.toLocaleString('en-IN')}
                                                             </span>
                                                             {item.quantity > 1 && (
                                                                 <p className="text-[10px] text-[#7A6E63] font-light">
-                                                                    {itemCur} {unitPrice.toLocaleString('en-IN')} each
+                                                                    {itemCurrency} {unitPrice.toLocaleString('en-IN')} each
                                                                 </p>
                                                             )}
                                                         </div>
                                                     </div>
 
-                                                    {/* Attributes / Color / Size */}
+                                                    {/* Variant Attributes: Color & Size Badges */}
                                                     <div className="flex flex-wrap gap-2 mt-3">
-                                                        {item.selectedColor && (
+                                                        {color && (
                                                             <span className="text-[10px] uppercase tracking-wider px-2.5 py-1 bg-[#f5f3f0] text-[#1b1c1a] border border-[#e4e2df] rounded-md font-medium">
-                                                                Color: {item.selectedColor}
+                                                                Color: {color}
                                                             </span>
                                                         )}
-                                                        {item.selectedSize && (
+                                                        {size && (
                                                             <span className="text-[10px] uppercase tracking-wider px-2.5 py-1 bg-[#f5f3f0] text-[#1b1c1a] border border-[#e4e2df] rounded-md font-medium">
-                                                                Size: {item.selectedSize}
+                                                                Size: {size}
                                                             </span>
                                                         )}
                                                     </div>
                                                 </div>
 
-                                                {/* Bottom Row: Quantity Controls & Remove Action */}
+                                                {/* Bottom Row: Quantity Steppers & Remove Action */}
                                                 <div className="flex items-center justify-between pt-3 border-t border-[#e4e2df]/60 flex-wrap gap-3">
                                                     {/* Quantity Stepper */}
                                                     <div className="flex items-center border border-[#d0c5b5] rounded-md overflow-hidden bg-[#fbf9f6]">
                                                         <button
                                                             type="button"
-                                                            onClick={() => handleQtyDecrease(prodId, varId, item.quantity, itemKey)}
+                                                            onClick={() => handleQtyDecrease({
+                                                                prodId,
+                                                                varId,
+                                                                currentQty: item.quantity,
+                                                                color,
+                                                                size,
+                                                                itemId,
+                                                                key: itemKey
+                                                            })}
                                                             className="w-8 h-8 flex items-center justify-center text-sm font-medium hover:bg-[#e4e2df] active:bg-[#d0c5b5] transition-colors"
-                                                            aria-label="Decrease quantity"
+                                                            aria-label={`Decrease quantity of ${title}`}
                                                         >
                                                             −
                                                         </button>
@@ -323,9 +429,16 @@ export default function Cart() {
                                                         </span>
                                                         <button
                                                             type="button"
-                                                            onClick={() => handleQtyIncrease(prodId, varId, itemKey)}
+                                                            onClick={() => handleQtyIncrease({
+                                                                prodId,
+                                                                varId,
+                                                                color,
+                                                                size,
+                                                                itemId,
+                                                                key: itemKey
+                                                            })}
                                                             className="w-8 h-8 flex items-center justify-center text-sm font-medium hover:bg-[#e4e2df] active:bg-[#d0c5b5] transition-colors"
-                                                            aria-label="Increase quantity"
+                                                            aria-label={`Increase quantity of ${title}`}
                                                         >
                                                             +
                                                         </button>
@@ -334,7 +447,14 @@ export default function Cart() {
                                                     {/* Remove Button */}
                                                     <button
                                                         type="button"
-                                                        onClick={() => handleRemove(prodId, varId, itemKey)}
+                                                        onClick={() => handleRemove({
+                                                            prodId,
+                                                            varId,
+                                                            color,
+                                                            size,
+                                                            itemId,
+                                                            key: itemKey
+                                                        })}
                                                         className="text-[10px] sm:text-[11px] uppercase tracking-[0.15em] text-[#7A6E63] hover:text-red-700 font-medium py-1 px-2.5 border border-transparent hover:border-red-200 hover:bg-red-50/50 rounded transition-all"
                                                     >
                                                         Remove

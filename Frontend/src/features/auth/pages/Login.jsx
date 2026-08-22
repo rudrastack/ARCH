@@ -83,8 +83,8 @@ export const Login = () => {
                     {/* Left Editorial Visual */}
                     <div className="hidden md:flex md:w-1/2 bg-[#1b1c1a] p-10 flex-col justify-between relative overflow-hidden min-h-[550px]">
                         <img
-                            src="/arks_hero_editorial.png"
-                            alt="ARKS Fashion Editorial"
+                            src="/arch_hero_editorial.png"
+                            alt="ARCH Fashion Editorial"
                             className="absolute inset-0 w-full h-full object-cover object-top filter brightness-[0.97]"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-[#1b1c1a]/90 via-[#1b1c1a]/30 to-transparent" />
@@ -97,7 +97,7 @@ export const Login = () => {
                                     color: "#C9A96E",
                                 }}
                             >
-                                ARKS.
+                                ARCH.
                             </span>
                         </div>
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useProduct } from "../hook/useProduct";
 import { useCart } from "../../../features/cart/hook/useCart";
@@ -17,6 +17,20 @@ const t = {
     onSurfaceVariant: "#44474d",
     outline: "#75777e",
     outlineVariant: "#c5c6cd",
+};
+
+// ── Helper: Normalize attributes whether stored as string or array ──
+const getAttrString = (attr) => {
+    if (!attr) return "";
+    if (Array.isArray(attr)) return attr.join(", ");
+    if (typeof attr === 'string') return attr;
+    return String(attr);
+};
+
+const getAttrList = (attr) => {
+    const str = getAttrString(attr);
+    if (!str) return [];
+    return str.split(",").map(s => s.trim()).filter(Boolean);
 };
 
 export default function ProductDetails() {
@@ -38,7 +52,94 @@ export default function ProductDetails() {
     const [cartFeedback, setCartFeedback] = useState(false);
     const [selectedVariant, setSelectedVariant] = useState(null);
 
-    const variants = product?.variants ?? [];
+    const variants = useMemo(() => product?.variants ?? [], [product]);
+
+    // ── Derived selections ──────────────────────────────────────────
+    const availableColors = useMemo(() => {
+        const set = new Set();
+        variants.forEach(v => {
+            const list = getAttrList(v.attributes?.Color || v.attributes?.color);
+            list.forEach(c => set.add(c));
+        });
+        return Array.from(set);
+    }, [variants]);
+
+    const availableSizes = useMemo(() => {
+        const set = new Set();
+        variants.forEach(v => {
+            const list = getAttrList(v.attributes?.Size || v.attributes?.size);
+            list.forEach(s => set.add(s));
+        });
+        return Array.from(set);
+    }, [variants]);
+
+    // ── Variant Finder ──────────────────────────────────────────────
+    const findVariant = useCallback((color, size) => {
+        if (!variants.length) return null;
+
+        // 1. Match both color and size
+        if (color && size) {
+            const match = variants.find(v => {
+                const colorList = getAttrList(v.attributes?.Color || v.attributes?.color).map(c => c.toLowerCase());
+                const sizeList = getAttrList(v.attributes?.Size || v.attributes?.size).map(s => s.toLowerCase());
+                return colorList.includes(color.toLowerCase()) && sizeList.includes(size.toLowerCase());
+            });
+            if (match) return match;
+        }
+
+        // 2. Match by color
+        if (color) {
+            const match = variants.find(v => {
+                const colorList = getAttrList(v.attributes?.Color || v.attributes?.color).map(c => c.toLowerCase());
+                return colorList.includes(color.toLowerCase());
+            });
+            if (match) return match;
+        }
+
+        // 3. Match by size
+        if (size) {
+            const match = variants.find(v => {
+                const sizeList = getAttrList(v.attributes?.Size || v.attributes?.size).map(s => s.toLowerCase());
+                return sizeList.includes(size.toLowerCase());
+            });
+            if (match) return match;
+        }
+
+        return variants[0] || null;
+    }, [variants]);
+
+    const handleColorSelect = useCallback((color) => {
+        setSelectedColor(color);
+        const variant = findVariant(color, selectedSize);
+        if (variant) {
+            setSelectedVariant(variant);
+            const variantSizes = getAttrList(variant.attributes?.Size || variant.attributes?.size);
+            if (variantSizes.length && (!selectedSize || !variantSizes.map(s => s.toLowerCase()).includes(selectedSize.toLowerCase()))) {
+                setSelectedSize(variantSizes[0]);
+            }
+        }
+    }, [findVariant, selectedSize]);
+
+    const handleSizeSelect = useCallback((size) => {
+        setSelectedSize(size);
+        const variant = findVariant(selectedColor, size);
+        if (variant) {
+            setSelectedVariant(variant);
+            const variantColors = getAttrList(variant.attributes?.Color || variant.attributes?.color);
+            if (variantColors.length && (!selectedColor || !variantColors.map(c => c.toLowerCase()).includes(selectedColor.toLowerCase()))) {
+                setSelectedColor(variantColors[0]);
+            }
+        }
+    }, [findVariant, selectedColor]);
+
+    const isSizeAvailable = useCallback((size) => {
+        if (!selectedColor) return true;
+        return variants.some(v => {
+            const colorList = getAttrList(v.attributes?.Color || v.attributes?.color).map(c => c.toLowerCase());
+            const sizeList = getAttrList(v.attributes?.Size || v.attributes?.size).map(s => s.toLowerCase());
+            return colorList.includes(selectedColor.toLowerCase()) && sizeList.includes(size.toLowerCase());
+        });
+    }, [variants, selectedColor]);
 
     // ── Cart ────────────────────────────────────────────────────────
     const handleAdd = useCallback(async () => {
@@ -64,57 +165,6 @@ export default function ProductDetails() {
         }
     }, [handleAddToCart, product, selectedVariant, qty, selectedColor, selectedSize]);
 
-    // ── Derived selections ──────────────────────────────────────────
-    const availableColors = [
-        ...new Set(variants.map(v => v.attributes?.Color?.[0]).filter(Boolean)),
-    ];
-
-    const availableSizes = [
-        ...new Set(
-            variants.flatMap(v =>
-                (v.attributes?.Size?.[0] || "")
-                    .split(",")
-                    .map(s => s.trim())
-                    .filter(Boolean)
-            )
-        ),
-    ];
-
-    function findVariant(color, size) {
-        return variants.find(v => {
-            const sizes = (v.attributes?.Size?.[0] || "").split(",").map(s => s.trim());
-            return v.attributes?.Color === color && sizes.includes(size);
-        });
-    }
-
-    const handleColorSelect = useCallback((color) => {
-        setSelectedColor(color);
-        let variant = findVariant(color, selectedSize);
-        if (!variant) {
-            variant = variants.find(v => v.attributes?.Color?.[0] === color);
-            if (!variant) return;
-            const firstSize = (variant.attributes?.Size?.[0] || "").split(",")[0].trim();
-            setSelectedSize(firstSize);
-        }
-        setSelectedVariant(variant);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [variants, selectedSize]);
-
-    const handleSizeSelect = useCallback((size) => {
-        setSelectedSize(size);
-        let variant = findVariant(selectedColor, size);
-        if (!variant) {
-            variant = variants.find(v => {
-                const sizes = (v.attributes?.Size?.[0] || "").split(",").map(s => s.trim());
-                return v.attributes?.Color?.[0] === selectedColor && sizes.includes(size);
-            });
-            if (!variant) return;
-            setSelectedColor(variant.attributes?.Color?.[0] || "");
-        }
-        setSelectedVariant(variant);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [variants, selectedColor]);
-
     // ── Data fetching ────────────────────────────────────────────────
     useEffect(() => {
         let cancelled = false;
@@ -125,16 +175,17 @@ export default function ProductDetails() {
             if (data?.variants?.length) {
                 const first = data.variants[0];
                 setSelectedVariant(first);
-                setSelectedColor(first.attributes?.Color?.[0] || "");
-                const firstSize = (first.attributes?.Size?.[0] || "").split(",")[0].trim();
-                setSelectedSize(firstSize || "");
+                const firstColors = getAttrList(first.attributes?.Color || first.attributes?.color);
+                const firstSizes = getAttrList(first.attributes?.Size || first.attributes?.size);
+                setSelectedColor(firstColors[0] || "");
+                setSelectedSize(firstSizes[0] || "");
             }
         }
         fetchProduct();
         return () => { cancelled = true; };
-    }, [productId]);
+    }, [productId, handleGetProductById]);
 
-    // Reset thumb & qty when variant changes (merged into one effect)
+    // Reset thumb & qty when variant changes
     useEffect(() => {
         setActiveThumb(0);
         setQty(1);
@@ -142,7 +193,7 @@ export default function ProductDetails() {
 
     useEffect(() => {
         handleGetCart();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleThumbClick = useCallback((index) => {
@@ -171,7 +222,7 @@ export default function ProductDetails() {
     }
 
     const images = selectedVariant?.images?.length ? selectedVariant.images : product.images || [];
-    const currentImage = images[Math.min(activeThumb, images.length - 1)]?.url || "";
+    const currentImage = images[Math.min(activeThumb, Math.max(0, images.length - 1))]?.url || images[Math.min(activeThumb, Math.max(0, images.length - 1))] || "";
     const currentPrice = selectedVariant?.price ?? product.price;
     const formattedPrice = new Intl.NumberFormat("en-IN", {
         style: "currency",
@@ -236,32 +287,35 @@ export default function ProductDetails() {
                         <div className="w-full lg:w-[58%] flex flex-col-reverse sm:flex-row gap-3">
                             {/* Thumbnail Strip */}
                             <div className="flex flex-row sm:flex-col gap-2 sm:gap-3 overflow-x-auto sm:overflow-y-auto sm:w-[80px] sm:max-h-[600px] pb-1 sm:pb-0">
-                                {images.map((img, i) => (
-                                    <button
-                                        key={img._id || i}
-                                        className="arks-thumb flex-shrink-0"
-                                        onClick={() => handleThumbClick(i)}
-                                        style={{
-                                            border: `2px solid ${i === activeThumb ? t.primary : "transparent"}`,
-                                            width: 64,
-                                            minWidth: 64,
-                                            aspectRatio: "3/4",
-                                            background: t.surfaceContainerLow,
-                                            overflow: "hidden",
-                                            opacity: i === activeThumb ? 1 : 0.5,
-                                            cursor: "pointer",
-                                            padding: 0,
-                                        }}
-                                    >
-                                        <img
-                                            src={img.url}
-                                            alt={`View ${i + 1}`}
-                                            loading="lazy"
-                                            decoding="async"
-                                            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                                        />
-                                    </button>
-                                ))}
+                                {images.map((img, i) => {
+                                    const imgUrl = typeof img === 'object' ? img?.url : img;
+                                    return (
+                                        <button
+                                            key={img?._id || i}
+                                            className="arks-thumb flex-shrink-0"
+                                            onClick={() => handleThumbClick(i)}
+                                            style={{
+                                                border: `2px solid ${i === activeThumb ? t.primary : "transparent"}`,
+                                                width: 64,
+                                                minWidth: 64,
+                                                aspectRatio: "3/4",
+                                                background: t.surfaceContainerLow,
+                                                overflow: "hidden",
+                                                opacity: i === activeThumb ? 1 : 0.5,
+                                                cursor: "pointer",
+                                                padding: 0,
+                                            }}
+                                        >
+                                            <img
+                                                src={imgUrl}
+                                                alt={`View ${i + 1}`}
+                                                loading="lazy"
+                                                decoding="async"
+                                                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                                            />
+                                        </button>
+                                    );
+                                })}
                             </div>
 
                             {/* Main Image */}
@@ -282,7 +336,7 @@ export default function ProductDetails() {
                             {/* Breadcrumbs */}
                             <nav className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.1em] uppercase text-[#44474d]">
                                 <a href="/" className="arks-nav-a hover:text-[#0a192f] transition-colors" style={{ color: t.onSurfaceVariant, textDecoration: "none" }}>Home</a>
-                                <span>/</span><span>Men</span><span>/</span>
+                                <span>/</span><span>Collection</span><span>/</span>
                                 <span style={{ color: t.primary }}>Details</span>
                             </nav>
 
@@ -318,9 +372,9 @@ export default function ProductDetails() {
                                                 padding: "8px 16px",
                                                 borderRadius: 999,
                                                 cursor: "pointer",
-                                                background: selectedColor === color ? t.primary : "transparent",
-                                                color: selectedColor === color ? t.primaryText : t.onSurface,
-                                                border: `1px solid ${selectedColor === color ? t.primary : t.outlineVariant}`,
+                                                background: selectedColor?.toLowerCase() === color.toLowerCase() ? t.primary : "transparent",
+                                                color: selectedColor?.toLowerCase() === color.toLowerCase() ? t.primaryText : t.onSurface,
+                                                border: `1px solid ${selectedColor?.toLowerCase() === color.toLowerCase() ? t.primary : t.outlineVariant}`,
                                                 transition: "all .25s",
                                                 fontSize: 13,
                                                 fontWeight: 500,
@@ -341,10 +395,8 @@ export default function ProductDetails() {
                                     </div>
                                     <div className="grid grid-cols-5 sm:grid-cols-5 gap-2">
                                         {availableSizes.map(size => {
-                                            const isAvailable = variants.some(v => {
-                                                const sizes = (v.attributes?.Size?.[0] || "").split(",").map(s => s.trim());
-                                                return v.attributes?.Color?.[0] === selectedColor && sizes.includes(size);
-                                            });
+                                            const isAvailable = isSizeAvailable(size);
+                                            const isSelected = selectedSize?.toLowerCase() === size.toLowerCase();
                                             return (
                                                 <button
                                                     key={size}
@@ -353,9 +405,9 @@ export default function ProductDetails() {
                                                     onClick={() => handleSizeSelect(size)}
                                                     style={{
                                                         padding: "10px 0",
-                                                        border: `1px solid ${selectedSize === size ? t.primary : t.outline}`,
-                                                        background: selectedSize === size ? t.primary : "transparent",
-                                                        color: selectedSize === size ? t.primaryText : t.onSurface,
+                                                        border: `1px solid ${isSelected ? t.primary : t.outline}`,
+                                                        background: isSelected ? t.primary : "transparent",
+                                                        color: isSelected ? t.primaryText : t.onSurface,
                                                         opacity: isAvailable ? 1 : 0.35,
                                                         cursor: isAvailable ? "pointer" : "not-allowed",
                                                         fontFamily: "'Hanken Grotesk', sans-serif",
@@ -406,6 +458,10 @@ export default function ProductDetails() {
                                 <button
                                     className="arks-buy-btn"
                                     disabled={outOfStock}
+                                    onClick={async () => {
+                                        await handleAdd();
+                                        navigate("/cart");
+                                    }}
                                     style={{
                                         opacity: outOfStock ? 0.5 : 1,
                                         cursor: outOfStock ? "not-allowed" : "pointer",
@@ -488,7 +544,7 @@ export default function ProductDetails() {
                             )}
                             {activeTab === "shipping" && (
                                 <div style={{ textAlign: "center" }}>
-                                    <p style={{ fontSize: 15, lineHeight: 1.7, color: t.onSurfaceVariant }}>Complimentary express shipping on all orders over ₹250. Orders processed within 24 hours.</p>
+                                    <p style={{ fontSize: 15, lineHeight: 1.7, color: t.onSurfaceVariant }}>Complimentary express shipping on all orders over ₹2,000. Orders processed within 24 hours.</p>
                                     <div className="flex justify-center gap-12 sm:gap-16 py-5 border-t border-b border-[#c5c6cd] my-4">
                                         <div><p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: t.primary, marginBottom: 4 }}>Domestic</p><p style={{ color: t.onSurfaceVariant, fontSize: 14, margin: 0 }}>2–3 Business Days</p></div>
                                         <div><p style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: t.primary, marginBottom: 4 }}>International</p><p style={{ color: t.onSurfaceVariant, fontSize: 14, margin: 0 }}>5–7 Business Days</p></div>
@@ -505,7 +561,7 @@ export default function ProductDetails() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center" style={{ background: t.surfaceContainerLow, padding: "clamp(24px,5vw,64px)" }}>
                         <div className="aspect-video overflow-hidden">
                             <img
-                                src={images[1]?.url || images[0]?.url}
+                                src={images[1]?.url || images[0]?.url || images[0]}
                                 alt="Seller showcase"
                                 loading="lazy"
                                 decoding="async"
@@ -526,7 +582,7 @@ export default function ProductDetails() {
                 style={{ background: t.surface, borderTop: `1px solid ${t.outlineVariant}` }}>
                 <div>
                     <a href="/" style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: t.primary, textDecoration: "none" }}>ARKS</a>
-                    <p style={{ fontSize: 11, color: t.onSurfaceVariant, letterSpacing: "0.06em", textTransform: "uppercase", marginTop: 8, marginBottom: 0 }}>© 2025 ARKS. All Rights Reserved.</p>
+                    <p style={{ fontSize: 11, color: t.onSurfaceVariant, letterSpacing: "0.06em", textTransform: "uppercase", marginTop: 8, marginBottom: 0 }}>© 2026 ARKS. All Rights Reserved.</p>
                 </div>
                 <div className="flex flex-wrap gap-5 sm:gap-8">
                     {["Shipping", "Returns", "Size Guide", "Newsletter", "Privacy", "Terms"].map(l => (

@@ -71,7 +71,7 @@ export default function Navbar() {
                         flexShrink: 0,
                     }}
                 >
-                    ARKS
+                    ARCH
                 </a>
 
                 {/* DESKTOP LINKS */}
@@ -80,7 +80,7 @@ export default function Navbar() {
                         <a
                             key={l}
                             href="#"
-                            className="arks-nav-a"
+                            className="arch-nav-a"
                             style={{
                                 fontSize: 14,
                                 fontWeight: 500,
@@ -219,7 +219,7 @@ export default function Navbar() {
             </nav>
 
             {/* MOBILE DRAWER */}
-            <div className={`arks-mobile-nav ${mobileOpen ? "open" : ""}`}>
+            <div className={`arch-mobile-nav ${mobileOpen ? "open" : ""}`}>
                 {navLinks.map(l => (
                     <a
                         key={l}

@@ -20,7 +20,7 @@ function checkShouldShowIntro() {
         // Show intro only if sessionStorage flag has NOT been set yet.
         // A real page reload clears sessionStorage (unlike localStorage),
         // so the animation runs again automatically on reload.
-        return !sessionStorage.getItem('arks_intro_seen');
+        return !sessionStorage.getItem('arch_intro_seen');
     } catch (e) {
         return false;
     }
@@ -42,7 +42,7 @@ export default function Home() {
 
     const handleIntroComplete = useCallback(() => {
         try {
-            sessionStorage.setItem('arks_intro_seen', 'true');
+            sessionStorage.setItem('arch_intro_seen', 'true');
         } catch (e) { /* sessionStorage blocked (rare) */ }
         setNavVisible(true);
         setShowIntro(false);
@@ -97,7 +97,7 @@ export default function Home() {
     }, [navigate]);
 
     return (
-        <div className="arks-landing bg-[#fbf9f6] text-[#1b1c1a] min-h-screen selection:bg-[#C9A96E]/30 select-none">
+        <div className="arch-landing bg-[#fbf9f6] text-[#1b1c1a] min-h-screen selection:bg-[#C9A96E]/30 select-none">
             {/* Mouse Follower — desktop only, zero cost on touch devices */}
             <MouseFollower />
 
@@ -129,8 +129,8 @@ export default function Home() {
     );
 }
 
-// ── ARKS Logo ───────────────────────────────────────────────────────
-function ArksLogo({ variant = 'dark', className = '', size = 'md' }) {
+// ARCH Logo
+function ARCHLogo({ variant = 'dark', className = '', size = 'md' }) {
     const sizeClasses = {
         sm: 'h-6 md:h-7',
         md: 'h-8 md:h-10',
@@ -141,19 +141,18 @@ function ArksLogo({ variant = 'dark', className = '', size = 'md' }) {
     return (
         <div className={`inline-flex items-center justify-center select-none ${className}`}>
             <img
-                src="/arks_logo.png"
-                alt="ARKS Official Logo"
+                src="/arch_logo_.png"
+                alt=" ARCH Official Logo"
                 className={`${sizeClasses} object-contain transition-all duration-300`}
                 style={{
-                    filter: variant === 'light' ? 'invert(1) hue-rotate(180deg) brightness(1.2)' : 'none',
+                    filter: variant === '' ? 'invert(1) hue-rotate(180deg) brightness(1.2)' : 'none',
                 }}
             />
         </div>
     );
 }
 
-// ── INTRO OVERLAY ────────────────────────────────────────────────────
-// React.memo prevents any re-render once mounted.
+//  INTRO OVERLAY
 const IntroOverlay = React.memo(function IntroOverlay({ onComplete }) {
     const overlayRef = useRef(null);
     const leftGateRef = useRef(null);
@@ -199,14 +198,14 @@ const IntroOverlay = React.memo(function IntroOverlay({ onComplete }) {
         >
             <div
                 ref={leftGateRef}
-                className="gate-panel w-1/2 h-full bg-[#1b1c1a] border-r border-[#C9A96E]/20 relative"
+                className="gate-panel w-1/2 h-full bg-[#1b1c1a]  relative"
             >
                 <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]" />
             </div>
 
             <div
                 ref={rightGateRef}
-                className="gate-panel w-1/2 h-full bg-[#1b1c1a] border-l border-[#C9A96E]/20 relative"
+                className="gate-panel w-1/2 h-full bg-[#1b1c1a]  relative"
             >
                 <div className="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]" />
             </div>
@@ -217,8 +216,8 @@ const IntroOverlay = React.memo(function IntroOverlay({ onComplete }) {
                     className="text-center"
                     style={{ opacity: 0, transformOrigin: 'center center', willChange: 'transform, opacity' }}
                 >
-                    <ArksLogo variant="light" size="xl" />
-                    <p className="mt-4 text-[10px] uppercase tracking-[0.4em] text-[#C9A96E] font-medium">
+                    <ARCHLogo variant="light" size="xl" />
+                    <p className="mt-1 text-[10px] uppercase tracking-[0.4em] text-[#C9A96E] font-medium">
                         Quiet Luxury &bull; Haute Couture
                     </p>
                 </div>
@@ -249,7 +248,7 @@ const MouseFollower = React.memo(function MouseFollower() {
         };
 
         const handleMouseEnter = () => {
-            if (cursorRef.current) gsap.to(cursorRef.current, { scale: 2.2, borderColor: '#C9A96E', duration: 0.3 });
+            if (cursorRef.current) gsap.to(cursorRef.current, { scale: 2.2, borderColor: 'rgba(27,28,26,0.4)', duration: 0.3 });
         };
         const handleMouseLeave = () => {
             if (cursorRef.current) gsap.to(cursorRef.current, { scale: 1, borderColor: 'rgba(27,28,26,0.4)', duration: 0.3 });
@@ -376,7 +375,7 @@ const Navbar = React.memo(function Navbar({ visible, onAuthNavigate, user }) {
         >
             <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-12 flex items-center justify-between">
                 <a href="/" className="flex items-center space-x-3 group" data-hover>
-                    <ArksLogo variant="dark" size="sm" />
+                    <ARCHLogo variant="dark" size="sm" />
                     <span className="text-[9px] uppercase tracking-[0.2em] text-[#C9A96E] font-medium border border-[#C9A96E]/30 px-2 py-0.5 hidden sm:inline-block ml-2">
                         Club
                     </span>
@@ -466,7 +465,7 @@ const Navbar = React.memo(function Navbar({ visible, onAuthNavigate, user }) {
                                 onClick={() => { closeMenu(); onAuthNavigate(user?.role === "seller" ? "/seller/get" : "/register"); }}
                                 className="w-full py-3 border border-[#1b1c1a] text-[#1b1c1a] text-xs uppercase tracking-[0.2em] font-medium"
                             >
-                                {user?.role === "seller" ? "Seller Dashboard" : "Join ARKS Club"}
+                                {user?.role === "seller" ? "Seller Dashboard" : "Join ARCH Club"}
                             </button>
                         </div>
                     </motion.div>
@@ -508,7 +507,7 @@ const HeroSection = React.memo(function HeroSection() {
 
                     <div className="max-w-2xl text-[#fbf9f6]">
                         <p className="text-[10px] uppercase tracking-[0.35em] text-[#C9A96E] font-medium mb-3">
-                            ARKS Studio &bull; Limited Release
+                            ARCH Studio &bull; Limited Release
                         </p>
                         <h1
                             className="text-3xl sm:text-5xl lg:text-7xl font-light leading-[1.05] tracking-wide"
@@ -551,7 +550,7 @@ const ModelShootSection = React.memo(function ModelShootSection() {
                         muted
                         playsInline
                         preload="none"
-                        poster="/arks_hero_editorial.png"
+                        poster="/arch_hero_editorial.png"
                         className="w-full h-full object-cover"
                         style={{ filter: 'contrast(1.05) brightness(0.95)' }}
                     >
@@ -586,7 +585,7 @@ const ModelShootSection = React.memo(function ModelShootSection() {
                             className="text-3xl sm:text-4xl md:text-5xl font-light text-[#1b1c1a] leading-tight"
                             style={{ fontFamily: "'Cormorant Garamond', serif" }}
                         >
-                            Behind the lens of ARKS Studio.
+                            Behind the lens of ARCH Studio.
                         </h2>
                         <p className="text-xs text-[#7A6E63] leading-relaxed font-light">
                             Every garment undergoes rigorous pattern development and drape testing in our atelier. We prioritize pure form, structural elegance, and longevity over fleeting seasonal hype.
@@ -595,7 +594,7 @@ const ModelShootSection = React.memo(function ModelShootSection() {
 
                     <div className="aspect-[16/10] bg-[#efece6] border border-[#e4e2df] overflow-hidden relative">
                         <img
-                            src="/arks_hero_editorial.png"
+                            src="/arch_hero_editorial.png"
                             alt="Editorial Model Shoot"
                             loading="lazy"
                             decoding="async"
@@ -707,7 +706,7 @@ const EditorialBanner = React.memo(function EditorialBanner() {
                     &ldquo;Luxury is not about abundance, but the elimination of noise until only pure form remains.&rdquo;
                 </h2>
                 <p className="text-xs tracking-[0.2em] uppercase text-[#7A6E63]">
-                    &mdash; ARKS Atelier Manifesto
+                    &mdash; ARCH Atelier Manifesto
                 </p>
             </div>
         </section>
@@ -720,7 +719,7 @@ const Footer = React.memo(function Footer({ onAuthNavigate }) {
         <footer id="about" className="bg-[#f5f3f0] border-t border-[#e4e2df] pt-12 md:pt-16 pb-10 md:pb-12 px-4 sm:px-8 lg:px-20">
             <div className="max-w-[1440px] mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-10 mb-12 md:mb-16">
                 <div className="space-y-4 col-span-2 md:col-span-1">
-                    <ArksLogo variant="dark" size="md" />
+                    <ARCHLogo variant="dark" size="md" />
                     <p className="text-xs text-[#7A6E63] leading-relaxed font-light">
                         Haute couture, footwear, and curated objects designed for members of refined taste.
                     </p>
@@ -747,13 +746,13 @@ const Footer = React.memo(function Footer({ onAuthNavigate }) {
                     <h4 className="text-[10px] uppercase tracking-[0.2em] text-[#1b1c1a] font-semibold mb-4">Client Care</h4>
                     <p className="text-xs text-[#7A6E63] leading-relaxed">
                         For bespoke inquiries and private viewing appointments: <br />
-                        <span className="text-[#1b1c1a] font-medium">concierge@arks.com</span>
+                        <span className="text-[#1b1c1a] font-medium">concierge@arch.com</span>
                     </p>
                 </div>
             </div>
 
             <div className="max-w-[1440px] mx-auto pt-8 border-t border-[#e4e2df] flex flex-col sm:flex-row justify-between items-center text-[10px] text-[#7A6E63] gap-4">
-                <p>&copy; {new Date().getFullYear()} ARKS Studio. All rights reserved.</p>
+                <p>&copy; {new Date().getFullYear()} ARCH Studio. All rights reserved.</p>
                 <div className="flex space-x-6">
                     <a href="#" className="hover:text-[#1b1c1a] transition-colors">Privacy Policy</a>
                     <a href="#" className="hover:text-[#1b1c1a] transition-colors">Terms of Service</a>

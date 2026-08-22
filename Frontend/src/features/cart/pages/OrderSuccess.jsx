@@ -13,7 +13,7 @@ export default function OrderSuccess() {
     // Read order ID from query params
     const queryParams = new URLSearchParams(location.search);
     const rawOrderId = queryParams.get("order_id") || queryParams.get("orderId");
-    const orderId = rawOrderId || `ARKS-${Math.floor(100000 + Math.random() * 900000)}`;
+    const orderId = rawOrderId || `ARCH-${Math.floor(100000 + Math.random() * 900000)}`;
 
     // Calculate delivery window (3 to 5 business days from now)
     const deliveryDates = useMemo(() => {
@@ -239,7 +239,7 @@ export default function OrderSuccess() {
                                         Recipient Details
                                     </span>
                                     <p className="font-semibold text-sm text-[#0a192f]">
-                                        {user?.fullname || "Esteemed ARKS Club Member"}
+                                        {user?.fullname || "Esteemed ARCH Club Member"}
                                     </p>
                                     <p className="text-[#7A6E63] mt-1">
                                         {user?.email || "Registered Email on File"}
@@ -316,10 +316,10 @@ export default function OrderSuccess() {
                                 <span className="material-symbols-outlined text-[#C9A96E] text-base">
                                     workspace_premium
                                 </span>
-                                <span>The ARKS Atelier Guarantee</span>
+                                <span>The ARCH Atelier Guarantee</span>
                             </div>
                             <p className="leading-relaxed">
-                                Every garment is numbered and archived under the ARKS Maison registry. Includes complimentary tailoring consultation and 30-day seamless exchange privileges.
+                                Every garment is numbered and archived under the ARCH Maison registry. Includes complimentary tailoring consultation and 30-day seamless exchange privileges.
                             </p>
                         </div>
 
@@ -344,7 +344,7 @@ export default function OrderSuccess() {
                                     className="text-2xl font-light text-[#0a192f]"
                                     style={{ fontFamily: "'Cormorant Garamond', serif" }}
                                 >
-                                    ARKS Atelier Concierge
+                                    ARCH Atelier Concierge
                                 </h3>
                             </div>
                             <button
@@ -362,11 +362,11 @@ export default function OrderSuccess() {
                         <div className="bg-[#fbf9f6] border border-[#e4e2df] rounded-xl p-4 space-y-3 text-xs">
                             <div className="flex items-center gap-2.5">
                                 <span className="material-symbols-outlined text-[#C9A96E] text-base">mail</span>
-                                <span className="font-semibold text-[#0a192f]">concierge@arks.club</span>
+                                <span className="font-semibold text-[#0a192f]">concierge@arch.club</span>
                             </div>
                             <div className="flex items-center gap-2.5">
                                 <span className="material-symbols-outlined text-[#C9A96E] text-base">call</span>
-                                <span className="font-semibold text-[#0a192f]">+91 (800) 845-ARKS</span>
+                                <span className="font-semibold text-[#0a192f]">+91 (800) 845-ARCH</span>
                             </div>
                         </div>
 

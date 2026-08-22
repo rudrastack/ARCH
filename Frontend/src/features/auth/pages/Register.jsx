@@ -92,7 +92,7 @@ export const Register = () => {
           {/* Left Editorial Visual */}
           <div className="hidden md:flex md:w-1/2 bg-[#1b1c1a] p-10 flex-col justify-between relative overflow-hidden min-h-[550px]">
             <img
-              src="/arks_hero_editorial.png"
+              src="/arch_hero_editorial.png"
               alt="Editorial Visual"
               className="absolute inset-0 w-full h-full object-cover grayscale contrast-110 opacity-75"
             />
@@ -106,7 +106,7 @@ export const Register = () => {
                   color: "#C9A96E",
                 }}
               >
-                ARKS.
+                ARCH.
               </span>
             </div>
 
