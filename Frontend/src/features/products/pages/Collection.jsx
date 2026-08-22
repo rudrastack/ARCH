@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useProduct } from '../hook/useProduct'
 
 export default function Collection() {
-    // ── State ─────────────────────────────────────────────────────────
+
     const [products, setProducts] = useState([])
     const [loading, setLoading] = useState(false)
     const [searchInput, setSearchInput] = useState("")    // raw input value
@@ -15,7 +15,7 @@ export default function Collection() {
     const { handleGetAllProducts } = useProduct()
     const debounceTimer = useRef(null)
 
-    // ── Fetch products ONCE on mount ─────────────────────────────────
+    //  Fetch products ONCE on mount 
     // NOTE: Empty dep array [] — we deliberately do not re-run on
     // handleGetAllProducts identity changes (it is not memoized in the hook).
     useEffect(() => {
@@ -36,7 +36,7 @@ export default function Collection() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
-    // ── Debounced search (300ms) ──────────────────────────────────────
+    //  Debounced search
     const handleSearchChange = useCallback((e) => {
         const val = e.target.value
         setSearchInput(val)
@@ -46,7 +46,7 @@ export default function Collection() {
         }, 300)
     }, [])
 
-    // ── Derived data (memoized) ───────────────────────────────────────
+    //  Derived data (memoized)
     const categories = useMemo(
         () => ["All", ...new Set(products.map(p => p.category).filter(Boolean))],
         [products]
@@ -82,12 +82,11 @@ export default function Collection() {
         setSelectedCategory("All")
     }, [])
 
-    // ── Render ────────────────────────────────────────────────────────
     return (
         <div className="min-h-screen bg-[#fbf9f6]" style={{ paddingTop: 72 }}>
             <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-12 py-8 md:py-12 space-y-8">
 
-                {/* ── PAGE HEADER ─────────────────────────────────────── */}
+                {/*  PAGE HEADER  */}
                 <div className="border-b border-[#e4e2df] pb-6">
                     <p className="text-[10px] uppercase tracking-[0.3em] text-[#C9A96E] font-medium mb-2">
                         ARCH Studio
@@ -108,7 +107,7 @@ export default function Collection() {
                     </div>
                 </div>
 
-                {/* ── SEARCH + SORT BAR ──────────────────────────────── */}
+                {/*  SEARCH + SORT BAR   */}
                 <div className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
                     {/* Search Input */}
                     <div className="relative flex-1 max-w-full sm:max-w-md">
@@ -154,7 +153,7 @@ export default function Collection() {
                     </div>
                 </div>
 
-                {/* ── CATEGORY PILLS ────────────────────────────────── */}
+                {/*  CATEGORY PILLS   */}
                 <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
                     {categories.map(cat => (
                         <button
@@ -167,7 +166,7 @@ export default function Collection() {
                     ))}
                 </div>
 
-                {/* ── GRID / LOADING / EMPTY ─────────────────────────── */}
+                {/*  GRID / LOADING / EMPTY  */}
                 {loading ? (
                     /* Shimmer Skeletons */
                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-10">
@@ -224,7 +223,7 @@ export default function Collection() {
     )
 }
 
-/* ── PRODUCT CARD (memoized) ───────────────────────────────────────── */
+/*  PRODUCT CARD (memoized)  */
 const ProductCard = ({ product, onClick }) => {
     const imageUrl = product.images?.[0]?.url || (product.variants?.[0]?.images?.[0]?.url) || null
 

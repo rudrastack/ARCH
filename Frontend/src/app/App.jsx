@@ -7,13 +7,11 @@ import { useAuth } from '../features/auth/hook/useAuth.js'
 
 function App() {
     const { handleGetMe } = useAuth()
-
     const user = useSelector(state => state.auth.user)
 
     useEffect(() => {
         handleGetMe()
     }, [])
-
 
     return (
         <>

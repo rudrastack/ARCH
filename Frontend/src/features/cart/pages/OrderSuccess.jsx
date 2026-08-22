@@ -15,7 +15,7 @@ export default function OrderSuccess() {
     const rawOrderId = queryParams.get("order_id") || queryParams.get("orderId");
     const orderId = rawOrderId || `ARCH-${Math.floor(100000 + Math.random() * 900000)}`;
 
-    // Calculate delivery window (3 to 5 business days from now)
+    // Calculate delivery window 
     const deliveryDates = useMemo(() => {
         const today = new Date();
         const start = new Date(today);

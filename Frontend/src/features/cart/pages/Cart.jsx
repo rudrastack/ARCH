@@ -5,7 +5,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useRazorpay } from "react-razorpay";
 
-// ── Helper: Extract clean string ID from MongoDB ObjectId, $oid, or string ──
+//  Helper: Extract clean string ID from MongoDB ObjectId, $oid, or string
 const extractId = (val) => {
     if (!val) return "";
     if (typeof val === 'string') return val;
@@ -14,7 +14,7 @@ const extractId = (val) => {
     return String(val);
 };
 
-// ── Helper: Normalize string/array attribute value ──────────────────────────
+//  Helper: Normalize string/array attribute value 
 const getAttrString = (attr) => {
     if (!attr) return "";
     if (Array.isArray(attr)) return attr.join(", ");
@@ -48,7 +48,7 @@ export default function Cart() {
     const { Razorpay } = useRazorpay();
 
     const [isCheckingOut, setIsCheckingOut] = useState(false);
-    const [actionLoading, setActionLoading] = useState(null); // tracking item key being updated
+    const [actionLoading, setActionLoading] = useState(null);
 
     // Fetch cart and all products catalogue on mount
     useEffect(() => {
@@ -56,7 +56,7 @@ export default function Cart() {
         handleGetAllProducts();
     }, []);
 
-    // ── Build fast lookup map for all products ─────────────────────────────
+    //  Build fast lookup map for all products 
     const productsMap = useMemo(() => {
         const map = new Map();
         allProducts.forEach(p => {
@@ -141,7 +141,7 @@ export default function Cart() {
         }
     };
 
-    // ── Helper: Resolve Full Product & Variant for any Cart Item ───────────
+    //  Resolve Full Product & Variant for any Cart Item
     const resolveItemDetails = useCallback((item) => {
         const prodId = extractId(item.product);
         const varId = extractId(item.variant);
@@ -381,11 +381,6 @@ export default function Cart() {
                                                             <span className="text-sm sm:text-base font-semibold text-[#0a192f] whitespace-nowrap">
                                                                 {itemCurrency} {itemTotal.toLocaleString('en-IN')}
                                                             </span>
-                                                            {item.quantity > 1 && (
-                                                                <p className="text-[10px] text-[#7A6E63] font-light">
-                                                                    {itemCurrency} {unitPrice.toLocaleString('en-IN')} each
-                                                                </p>
-                                                            )}
                                                         </div>
                                                     </div>
 

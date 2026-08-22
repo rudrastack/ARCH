@@ -5,7 +5,7 @@ import { useCart } from "../../../features/cart/hook/useCart";
 import { useSelector } from "react-redux";
 import { useAuth } from "../../../features/auth/hook/useAuth";
 
-// ── Design tokens ──────────────────────────────────────────────────
+// ── Design tokens  ──────────────────
 const t = {
     primary: "#0a192f",
     primaryText: "#ffffff",
@@ -54,7 +54,7 @@ export default function ProductDetails() {
 
     const variants = useMemo(() => product?.variants ?? [], [product]);
 
-    // ── Derived selections ──────────────────────────────────────────
+    // Derived selections  
     const availableColors = useMemo(() => {
         const set = new Set();
         variants.forEach(v => {
@@ -73,7 +73,7 @@ export default function ProductDetails() {
         return Array.from(set);
     }, [variants]);
 
-    // ── Variant Finder ──────────────────────────────────────────────
+    //  Variant Finder  
     const findVariant = useCallback((color, size) => {
         if (!variants.length) return null;
 
@@ -141,7 +141,7 @@ export default function ProductDetails() {
         });
     }, [variants, selectedColor]);
 
-    // ── Cart ────────────────────────────────────────────────────────
+    //  Cart  
     const handleAdd = useCallback(async () => {
         try {
             await handleAddToCart({
@@ -165,7 +165,7 @@ export default function ProductDetails() {
         }
     }, [handleAddToCart, product, selectedVariant, qty, selectedColor, selectedSize]);
 
-    // ── Data fetching ────────────────────────────────────────────────
+    //  Data fetching  
     useEffect(() => {
         let cancelled = false;
         async function fetchProduct() {
@@ -202,7 +202,7 @@ export default function ProductDetails() {
         setTimeout(() => { setActiveThumb(index); setImgOpacity(1); }, 280);
     }, [activeThumb]);
 
-    // ── Loading state ────────────────────────────────────────────────
+    //  Loading state  
     if (!product) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen gap-4"
@@ -247,7 +247,7 @@ export default function ProductDetails() {
     return (
         <div style={{ background: t.surface, color: t.onSurface, fontFamily: "'Hanken Grotesk', sans-serif", minHeight: "100vh" }}>
 
-            {/* ── NOTIFICATION TOAST ───────────────────────────────── */}
+            {/* ── NOTIFICATION TOAST  ─ */}
             {notification && (
                 <div className="fixed top-20 right-4 sm:right-8 z-50">
                     <div
@@ -279,11 +279,11 @@ export default function ProductDetails() {
             )}
 
             <main style={{ paddingTop: 72 }}>
-                {/* ── HERO SECTION ─────────────────────────────────── */}
+                {/* HERO SECTION   */}
                 <section className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-16 py-8 md:py-16">
                     <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
 
-                        {/* ── IMAGE GALLERY ─────────────────────────── */}
+                        {/* IMAGE GALLERY  */}
                         <div className="w-full lg:w-[58%] flex flex-col-reverse sm:flex-row gap-3">
                             {/* Thumbnail Strip */}
                             <div className="flex flex-row sm:flex-col gap-2 sm:gap-3 overflow-x-auto sm:overflow-y-auto sm:w-[80px] sm:max-h-[600px] pb-1 sm:pb-0">
@@ -331,7 +331,7 @@ export default function ProductDetails() {
                             </div>
                         </div>
 
-                        {/* ── RIGHT PANEL ───────────────────────────── */}
+                        {/* RIGHT PANEL  */}
                         <div className="w-full lg:w-[42%] flex flex-col gap-6 lg:gap-7">
                             {/* Breadcrumbs */}
                             <nav className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.1em] uppercase text-[#44474d]">
@@ -491,7 +491,7 @@ export default function ProductDetails() {
                     </div>
                 </section>
 
-                {/* ── TABS ─────────────────────────────────────────── */}
+                {/*  TABS   */}
                 <section style={{ background: "#ffffff", borderTop: `1px solid ${t.outlineVariant}`, borderBottom: `1px solid ${t.outlineVariant}` }}>
                     <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-16 py-12 md:py-16">
                         {/* Tab headers — horizontally scrollable on mobile */}
@@ -556,7 +556,7 @@ export default function ProductDetails() {
                     </div>
                 </section>
 
-                {/* ── HERITAGE SECTION ─────────────────────────────── */}
+                {/*  HERITAGE SECTION  */}
                 <section className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-16 py-12 md:py-20">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center" style={{ background: t.surfaceContainerLow, padding: "clamp(24px,5vw,64px)" }}>
                         <div className="aspect-video overflow-hidden">
@@ -577,7 +577,7 @@ export default function ProductDetails() {
                 </section>
             </main>
 
-            {/* ── FOOTER ───────────────────────────────────────────── */}
+            {/*  FOOTER  */}
             <footer className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 flex-wrap px-4 sm:px-8 lg:px-16 py-10"
                 style={{ background: t.surface, borderTop: `1px solid ${t.outlineVariant}` }}>
                 <div>

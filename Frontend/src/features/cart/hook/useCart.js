@@ -93,6 +93,6 @@ export const useCart = () => {
         handleVerifyOrder,
         handleRemoveCartItem,
         handleIncreaseCartItem,
-        handleDecreaseCartItem,
+        handleDecreaseCartItem
     };
 };

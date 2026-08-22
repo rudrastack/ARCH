@@ -16,7 +16,7 @@ import AppLayout from "./AppLayout.jsx";
 export const routes = createBrowserRouter([
     {
         path: "/",
-        element: <Home />,
+        element: <Home />
     },
 
     {
@@ -27,7 +27,6 @@ export const routes = createBrowserRouter([
         path: "/login",
         element: <LoginPage />
     },
-
 
     {
         element: <AppLayout />,

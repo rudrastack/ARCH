@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 // Register GSAP Plugin once at module level
 gsap.registerPlugin(ScrollTrigger);
 
-// ── Intro guard ─────────────────────────────────────────────────────
+//  Intro guard
 // sessionStorage is the sole source of truth.
 // We do NOT use a module-level variable because it would survive HMR
 // but NOT a real browser reload — making behaviour inconsistent.
@@ -26,7 +26,7 @@ function checkShouldShowIntro() {
     }
 }
 
-// ── Main orchestration ──────────────────────────────────────────────
+//  Main orchestration 
 export default function Home() {
     const { handleGetAllProducts } = useProduct();
     const user = useSelector((state) => state.auth.user);
@@ -132,7 +132,7 @@ export default function Home() {
 // ARCH Logo
 function ARCHLogo({ variant = 'dark', className = '', size = 'md' }) {
     const sizeClasses = {
-        sm: 'h-6 md:h-7',
+        sm: 'h-6 md:h-10',
         md: 'h-8 md:h-10',
         lg: 'h-14 md:h-16',
         xl: 'h-24 md:h-32',
@@ -226,7 +226,7 @@ const IntroOverlay = React.memo(function IntroOverlay({ onComplete }) {
     );
 });
 
-// ── MOUSE FOLLOWER ──────────────────────────────────────────────────
+//  MOUSE FOLLOWER 
 // Only rendered on pointer:fine devices (desktop). No cost on mobile.
 const MouseFollower = React.memo(function MouseFollower() {
     const isCoarsePointer =
@@ -306,7 +306,7 @@ const MouseFollower = React.memo(function MouseFollower() {
     );
 });
 
-// ── MAGNETIC BUTTON ─────────────────────────────────────────────────
+//  MAGNETIC BUTTON 
 const MagneticButton = React.memo(function MagneticButton({ children, className = '', onClick, type = 'button', disabled = false, ...props }) {
     const btnRef = useRef(null);
 
@@ -340,7 +340,7 @@ const MagneticButton = React.memo(function MagneticButton({ children, className 
     );
 });
 
-// ── NAVBAR ───────────────────────────────────────────────────────────
+//  NAVBAR
 const Navbar = React.memo(function Navbar({ visible, onAuthNavigate, user }) {
     const navRef = useRef(null);
     const [scrolled, setScrolled] = useState(false);
@@ -475,7 +475,7 @@ const Navbar = React.memo(function Navbar({ visible, onAuthNavigate, user }) {
     );
 });
 
-// ── HERO SECTION ────────────────────────────────────────────────────
+//  HERO SECTION
 const HeroSection = React.memo(function HeroSection() {
     return (
         <section className="relative min-h-screen bg-[#fbf9f6] flex flex-col justify-between pt-20 md:pt-28 pb-8 md:pb-12 px-4 sm:px-8 lg:px-20 overflow-hidden">
@@ -490,7 +490,7 @@ const HeroSection = React.memo(function HeroSection() {
                     className="absolute inset-0 w-full h-full object-cover object-center"
                     style={{ filter: 'contrast(1.05) brightness(0.95)' }}
                 >
-                    <source src="/assets/hero.mp4" type="video/mp4" />
+                    <source src="/assets/home.mp4" type="video/mp4" />
                 </video>
 
                 <div className="absolute inset-0 bg-gradient-to-t from-[#1b1c1a]/75 via-transparent to-[#1b1c1a]/20" />
@@ -532,41 +532,112 @@ const HeroSection = React.memo(function HeroSection() {
     );
 });
 
-// ── ATELIER MODEL SHOOT ──────────────────────────────────────────────
+//  ATELIER MODEL SHOOT 
 const ModelShootSection = React.memo(function ModelShootSection() {
+    const editorialImages = [
+        "/assets/followmeter-579298.jpg",
+        "/assets/followmeter-478581.jpg",
+        "/assets/followmeter-223876.jpg",
+        "/assets/followmeter-598855.jpg",
+        "/assets/followmeter-139236.jpg",
+
+
+    ];
+
+    const [currentImage, setCurrentImage] = useState(0);
+    const [isHovered, setIsHovered] = useState(false);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setCurrentImage((prev) => (prev + 1) % editorialImages.length);
+        }, 4500);
+
+        return () => clearInterval(interval);
+    }, []);
     return (
         <section id="atelier-shoot" className="py-16 md:py-24 bg-[#f5f3f0] border-y border-[#e4e2df] px-4 sm:px-8 lg:px-20">
             <div className="max-w-[1440px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
                 <motion.div
                     initial={{ opacity: 0, x: -30 }}
                     whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true, margin: '-50px' }}
+                    viewport={{ once: true, margin: "-50px" }}
                     transition={{ duration: 0.8 }}
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
                     className="lg:col-span-7 relative aspect-[4/5] bg-[#1b1c1a] border border-[#e4e2df] overflow-hidden"
                 >
-                    <video
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        preload="none"
-                        poster="/arch_hero_editorial.png"
-                        className="w-full h-full object-cover"
-                        style={{ filter: 'contrast(1.05) brightness(0.95)' }}
-                    >
-                        <source
-                            src="https://assets.mixkit.co/videos/preview/mixkit-model-posing-in-a-black-outfit-41489-large.mp4"
-                            type="video/mp4"
+                    <AnimatePresence mode="sync">
+                        <motion.img
+                            key={editorialImages[currentImage]}
+                            src={editorialImages[currentImage]}
+                            alt="Editorial Model Shoot"
+                            loading={currentImage === 0 ? "eager" : "lazy"}
+                            decoding="async"
+                            initial={{
+                                opacity: 0,
+                                scale: 1.04,
+                            }}
+                            animate={{
+                                opacity: 1,
+                                scale: 1,
+                                filter: isHovered
+                                    ? "grayscale(0) contrast(1)"
+                                    : "grayscale(1) contrast(1.05)",
+                            }}
+                            exit={{
+                                opacity: 0,
+                            }}
+                            transition={{
+                                opacity: {
+                                    duration: 1.1,
+                                    ease: "easeInOut",
+                                },
+                                scale: {
+                                    duration: 4.5,
+                                    ease: "easeOut",
+                                },
+                                filter: {
+                                    duration: 0.5,
+                                    ease: "easeOut",
+                                },
+                            }}
+                            className="absolute inset-0 w-full h-full object-cover"
+                            style={{
+                                willChange: "transform, opacity, filter",
+                            }}
                         />
-                    </video>
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#1b1c1a]/80 via-transparent to-transparent" />
-                    <div className="absolute bottom-6 left-6 z-10 text-[#fbf9f6]">
+                    </AnimatePresence>
+
+                    {/* Gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#1b1c1a]/80 via-transparent to-transparent pointer-events-none" />
+
+                    {/* Content */}
+                    <div className="absolute bottom-6 left-6 z-10 text-[#fbf9f6] pointer-events-none">
                         <span className="text-[9px] uppercase tracking-[0.25em] text-[#C9A96E] font-medium block mb-1">
                             Atelier Shoot &bull; Vol. I
                         </span>
-                        <p className="text-2xl font-light" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
+
+                        <p
+                            className="text-2xl font-light"
+                            style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                        >
                             Silhouettes in Motion
                         </p>
+                    </div>
+
+                    {/* Progress Indicators */}
+                    <div className="absolute bottom-6 right-6 z-10 flex gap-1.5">
+                        {editorialImages.map((_, index) => (
+                            <button
+                                key={index}
+                                onClick={() => setCurrentImage(index)}
+                                aria-label={`Show image ${index + 1}`}
+                                className={`h-[2px] transition-all duration-500 ${index === currentImage
+                                    ? "w-8 bg-[#fbf9f6]"
+                                    : "w-3 bg-[#fbf9f6]/40"
+                                    }`}
+                            />
+                        ))}
                     </div>
                 </motion.div>
 
@@ -593,14 +664,31 @@ const ModelShootSection = React.memo(function ModelShootSection() {
                     </div>
 
                     <div className="aspect-[16/10] bg-[#efece6] border border-[#e4e2df] overflow-hidden relative">
-                        <img
+
+                        <video
+                            autoPlay
+                            loop
+                            muted
+                            playsInline
+                            preload="none"
+                            poster="/arch_hero_editorial.png"
+                            className="w-full h-full object-cover"
+                            style={{ filter: 'contrast(1.05) brightness(0.95)' }}
+                        >
+                            <source
+                                src="/assets/followmeter-383690.mp4"
+                                type="video/mp4"
+                            />
+                        </video>
+
+                        {/* <img
                             src="/arch_hero_editorial.png"
                             alt="Editorial Model Shoot"
                             loading="lazy"
                             decoding="async"
                             className="w-full h-full object-cover grayscale"
                             style={{ filter: 'grayscale(1) contrast(1.05)' }}
-                        />
+                        /> */}
                         <div className="absolute bottom-3 right-3 bg-[#1b1c1a] text-[#fbf9f6] text-[9px] uppercase tracking-[0.2em] px-2.5 py-1">
                             Studio Shot
                         </div>
@@ -611,7 +699,7 @@ const ModelShootSection = React.memo(function ModelShootSection() {
     );
 });
 
-// ── FEATURED COLLECTION ──────────────────────────────────────────────
+//  FEATURED COLLECTION 
 // Receives user via props — no internal useSelector to avoid extra subscription.
 const FeaturedCollection = React.memo(function FeaturedCollection({ products, user, onAuthNavigate }) {
     const navigate = useNavigate();
@@ -691,7 +779,7 @@ const FeaturedCollection = React.memo(function FeaturedCollection({ products, us
     );
 });
 
-// ── EDITORIAL BANNER ─────────────────────────────────────────────────
+//  EDITORIAL BANNER 
 const EditorialBanner = React.memo(function EditorialBanner() {
     return (
         <section id="ethos" className="py-20 md:py-24 bg-[#1b1c1a] text-[#fbf9f6] px-4 sm:px-8 lg:px-20 relative overflow-hidden">
@@ -713,7 +801,7 @@ const EditorialBanner = React.memo(function EditorialBanner() {
     );
 });
 
-// ── FOOTER ────────────────────────────────────────────────────────────
+//  FOOTER 
 const Footer = React.memo(function Footer({ onAuthNavigate }) {
     return (
         <footer id="about" className="bg-[#f5f3f0] border-t border-[#e4e2df] pt-12 md:pt-16 pb-10 md:pb-12 px-4 sm:px-8 lg:px-20">

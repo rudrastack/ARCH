@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useProduct } from '../hook/useProduct';
 
-/*  Design Tokens — Variant Manager (Warm Minimalist Editorial)  */
+/*  Design Tokens  */
 const c = {
     bg: '#fbf9f6',
     surface: '#ffffff',
