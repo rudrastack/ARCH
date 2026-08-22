@@ -80,6 +80,13 @@ export default function Navbar() {
                         <a
                             key={l}
                             href="#"
+                            onClick={(e) => {
+                                e.preventDefault();
+
+                                if (l === "Collections") {
+                                    navigate("/collection");
+                                }
+                            }}
                             className="arch-nav-a"
                             style={{
                                 fontSize: 14,
