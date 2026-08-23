@@ -36,11 +36,11 @@ app.use(passport.initialize());
 
 // Configure Passport to use Google OAuth 2.0 strategy
 passport.use(new GoogleStrategy({
-  clientID: config.GOOGLE_CLIENT_ID,
-  clientSecret: config.GOOGLE_CLIENT_SECRET,
-callbackURL: `${config.BACKEND_URL}/api/auth/google/callback`
+    clientID: config.GOOGLE_CLIENT_ID,
+    clientSecret: config.GOOGLE_CLIENT_SECRET,
+    callbackURL: config.GOOGLE_CALLBACK_URL
 }, (accessToken, refreshToken, profile, done) => {
-  return done(null, profile);
+    return done(null, profile);
 }));
 
 // Routes

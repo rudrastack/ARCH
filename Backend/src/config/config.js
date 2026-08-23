@@ -17,6 +17,7 @@ const MONGO_URI = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/arks";
 const JWT_SECRET = process.env.JWT_SECRET || "dev_secret";
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL;
 const IMAGEKIT_PVT_KEY = process.env.IMAGEKIT_PVT_KEY;
 const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID;
 const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET;
@@ -28,6 +29,7 @@ export const config = {
   JWT_SECRET,
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
+  GOOGLE_CALLBACK_URL,
   IMAGEKIT_PVT_KEY,
   RAZORPAY_KEY_ID,
   RAZORPAY_KEY_SECRET,
