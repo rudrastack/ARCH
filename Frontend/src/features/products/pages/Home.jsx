@@ -730,7 +730,7 @@ const FeaturedCollection = React.memo(function FeaturedCollection({ products, us
             </div>
 
             <div className="max-w-[1440px] mx-auto grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
-                {(products.length > 0 ? products : []).map((product, i) => (
+                {(products.length > 4 ? products.slice(0, 4) : products).map((product, i) => (
                     <motion.div
                         key={product._id || product.id || i}
                         onClick={() => navigate(`/details/${product._id}`)}

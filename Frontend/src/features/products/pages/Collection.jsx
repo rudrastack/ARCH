@@ -290,10 +290,6 @@ const ProductCard = ({ product, onClick }) => {
                     </div>
                 )}
 
-                {/* "New" Badge */}
-                <span className="absolute top-2.5 left-2.5 px-2 py-0.5 bg-[#1b1c1a] text-[#fbf9f6] text-[8px] font-semibold tracking-[0.15em] uppercase">
-                    New
-                </span>
 
                 {/* Quick-view hover overlay */}
                 <div className="absolute inset-0 bg-[#1b1c1a]/0 group-hover:bg-[#1b1c1a]/8 transition-colors duration-400 flex items-end justify-center pb-4 opacity-0 group-hover:opacity-100">
@@ -306,7 +302,7 @@ const ProductCard = ({ product, onClick }) => {
             {/* Product Info */}
             <div className="space-y-1">
                 <p className="text-[9px] uppercase tracking-[0.18em] text-[#C9A96E] font-medium">
-                    {product.category || "Collection"}
+                    {product.category}
                 </p>
                 <h3
                     className="text-[13px] sm:text-sm font-medium text-[#1b1c1a] line-clamp-2 leading-snug"
