@@ -12,7 +12,8 @@ import { config } from './config/config.js';
 const app = express();
 const allowedOrigins = [
     "http://localhost:5173",
-    "https://arch-one-rose.vercel.app"
+    "https://arch-one-rose.vercel.app",
+    "https://arch-c4ooebwga-rudra-stack.vercel.app"
 ];
 
 app.use(cors({

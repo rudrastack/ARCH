@@ -486,7 +486,7 @@ const HeroSection = React.memo(function HeroSection() {
                     muted
                     playsInline
                     preload="none"
-                    poster="./public/assets/hero.png"
+                    poster=""
                     className="absolute inset-0 w-full h-full object-cover object-center"
                     style={{ filter: 'contrast(1.05) brightness(0.95)' }}
                 >
