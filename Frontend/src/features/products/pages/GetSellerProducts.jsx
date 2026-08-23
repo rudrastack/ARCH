@@ -381,6 +381,7 @@ export default function GetSellerProducts() {
                                                 src={product.images?.[0]?.url}
                                                 alt={product.title}
                                                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+
                                             />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center bg-neutral-100 text-[#B5ADA3] text-xs">
@@ -389,7 +390,15 @@ export default function GetSellerProducts() {
                                         )}
 
                                         {/* Hover Overlay Actions */}
-                                        <div className="absolute inset-0 bg-[#1b1c1a]/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
+                                        <div className="
+                                        absolute inset-0
+                                        bg-[#1b1c1a]/40
+                                        opacity-100
+                                        md:opacity-0
+                                        md:group-hover:opacity-100
+                                        transition-opacity duration-300
+                                        flex items-center justify-center gap-3
+                                        ">
                                             <button
                                                 onClick={() => setSelectedProduct(product)}
                                                 className="p-2.5 bg-white text-[#1b1c1a] hover:bg-[#C9A96E] hover:text-white transition-colors shadow-md rounded-full"
