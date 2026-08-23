@@ -36,6 +36,44 @@ export default function Collection() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
+    // debugging
+    useEffect(() => {
+        let cancelled = false;
+
+        const fetchProducts = async () => {
+            try {
+                setLoading(true);
+
+                console.log("1️⃣ Calling getAllProducts...");
+
+                const data = await handleGetAllProducts();
+
+                console.log("2️⃣ API DATA:", data);
+                console.log("3️⃣ Is Array:", Array.isArray(data));
+                console.log("4️⃣ Length:", data?.length);
+
+                if (!cancelled) {
+                    setProducts(data || []);
+                }
+
+            } catch (error) {
+                console.error("❌ PRODUCT ERROR:", error);
+                console.error("❌ RESPONSE:", error.response);
+                console.error("❌ DATA:", error.response?.data);
+            } finally {
+                if (!cancelled) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        fetchProducts();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [handleGetAllProducts]);
+
     //  Debounced search
     const handleSearchChange = useCallback((e) => {
         const val = e.target.value
