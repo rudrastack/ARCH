@@ -20,7 +20,7 @@ export async function getSellerProducts() {
 }
 
 export async function getAllProducts() {
-    const response = await productApiInstance.get("/");
+    const response = await productApiInstance.get("");
     return response.data;
 }
 
