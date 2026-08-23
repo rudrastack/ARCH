@@ -6,6 +6,7 @@ import { getMe } from '../controllers/auth.controller.js';
 import { logout } from '../controllers/auth.controller.js';
 import { googleCallback } from '../controllers/auth.controller.js';
 import { authenticateUser } from '../middleware/auth.middleware.js';
+import { config } from '../config/config.js';
 import passport from 'passport';
 
 
