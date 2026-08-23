@@ -1,7 +1,7 @@
 const ContinueWithGoogle = () => {
     return (
         <a
-            href="/api/auth/google"
+            href={`${import.meta.env.VITE_API_URL}/api/auth/google`}
             className="group relative mx-auto flex w-full max-w-[250px] items-center justify-center overflow-hidden rounded-[4px] border border-[#747775] bg-white py-3 px-4 text-sm font-medium text-[#1f1f1f] transition-all duration-200 hover:border-[#C9A96E] hover:bg-[#f8f3eb] hover:shadow-[0_1px_2px_0_rgba(60,64,67,0.30),0_1px_3px_1px_rgba(60,64,67,0.15)]"
             style={{ fontFamily: 'Roboto, Arial, sans-serif', letterSpacing: '0.25px' }}
         >
