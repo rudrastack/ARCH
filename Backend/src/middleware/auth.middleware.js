@@ -14,14 +14,14 @@ export const authenticateUser = async (req, res, next) => {
         const user = await userModel.findById(decoded.id);
 
         if (!user) {
-            return res.status(401).json({ message: "Unauthorized" });
+            return res.status(401).json({ message: "User is not logged in" });
         }
 
         req.user = user;
         next();
     } catch (error) {
         console.error(error);
-        return res.status(401).json({ message: "Unauthorized" });
+        return res.status(401).json({ message: "User is not logged in" });
     }
 }
 
@@ -36,7 +36,7 @@ export const authenticateSeller = async (req, res, next) => {
         const user = await userModel.findById(decoded.id);
 
         if (!user) {
-            return res.status(401).json({ message: "Unauthorized" });
+            return res.status(401).json({ message: "User is not logged in" });
         }
 
         if (user.role !== "seller") {
@@ -47,6 +47,6 @@ export const authenticateSeller = async (req, res, next) => {
         next();
     } catch (error) {
         console.error(error);
-        return res.status(401).json({ message: "Unauthorized" });
+        return res.status(401).json({ message: "User is not logged in" });
     }
 }
