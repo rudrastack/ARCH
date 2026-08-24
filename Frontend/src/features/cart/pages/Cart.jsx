@@ -512,7 +512,20 @@ export default function Cart() {
                                     type="button"
                                     onClick={handleCheckOut}
                                     disabled={isCheckingOut || cartItems.length === 0}
-                                    className="w-full mt-6 py-4 bg-[#0a192f] text-white hover:bg-[#C9A96E] hover:text-[#0a192f] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 text-xs uppercase tracking-[0.2em] font-semibold flex items-center justify-center gap-2 rounded-none"
+                                    className="
+                                    w-full mt-6 py-4
+                                  bg-[#0a192f] text-white
+                                    hover:bg-[#C9A96E]
+                                    hover:text-[#0a192f]
+                                    disabled:opacity-50
+                                    disabled:cursor-not-allowed
+                                    transition-all duration-300 ease-in-out
+                                    text-xs uppercase tracking-[0.2em] font-semibold
+                                    flex items-center justify-center gap-2
+                                    rounded-none
+                                    active:scale-[0.98]
+                                    active:opacity-80
+                                              "
                                 >
                                     {isCheckingOut ? (
                                         <>
