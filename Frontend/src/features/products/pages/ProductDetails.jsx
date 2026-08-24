@@ -437,26 +437,37 @@ export default function ProductDetails() {
 
                             {/* CTA Buttons */}
                             <div className="flex flex-col gap-3">
+                                {/* ADD TO CART */}
                                 <button
-                                    className="arks-add-btn"
+                                    className="arks-add-btn transition-all duration-300 ease-in-out active:scale-[0.98] active:opacity-80"
                                     disabled={outOfStock}
                                     onClick={handleAdd}
                                     style={{
                                         opacity: outOfStock ? 0.5 : 1,
                                         cursor: outOfStock ? "not-allowed" : "pointer",
-                                        width: "100%", padding: "16px 0",
+                                        width: "100%",
+                                        padding: "16px 0",
                                         background: cartFeedback ? "#2d5a27" : t.primary,
-                                        color: t.primaryText, border: "none",
+                                        color: t.primaryText,
+                                        border: "none",
                                         fontFamily: "'Hanken Grotesk', sans-serif",
-                                        fontSize: 13, fontWeight: 600,
-                                        letterSpacing: "0.15em", textTransform: "uppercase",
-                                        transition: "background .3s",
+                                        fontSize: 13,
+                                        fontWeight: 600,
+                                        letterSpacing: "0.15em",
+                                        textTransform: "uppercase",
+                                        transition: "background .3s ease-in-out, transform .15s ease-in-out",
                                     }}
                                 >
-                                    {outOfStock ? "Out of Stock" : cartFeedback ? "✓ Added to Cart" : "Add to Cart"}
+                                    {outOfStock
+                                        ? "Out of Stock"
+                                        : cartFeedback
+                                            ? "✓ Added to Cart"
+                                            : "Add to Cart"}
                                 </button>
+
+                                {/* BUY NOW */}
                                 <button
-                                    className="arks-buy-btn"
+                                    className="arks-buy-btn transition-all duration-300 ease-in-out active:scale-[0.98] active:opacity-80"
                                     disabled={outOfStock}
                                     onClick={async () => {
                                         await handleAdd();
@@ -465,13 +476,17 @@ export default function ProductDetails() {
                                     style={{
                                         opacity: outOfStock ? 0.5 : 1,
                                         cursor: outOfStock ? "not-allowed" : "pointer",
-                                        width: "100%", padding: "16px 0",
-                                        background: "transparent", color: t.primary,
+                                        width: "100%",
+                                        padding: "16px 0",
+                                        background: "transparent",
+                                        color: t.primary,
                                         border: `1px solid ${t.primary}`,
                                         fontFamily: "'Hanken Grotesk', sans-serif",
-                                        fontSize: 13, fontWeight: 600,
-                                        letterSpacing: "0.15em", textTransform: "uppercase",
-                                        transition: "background .3s",
+                                        fontSize: 13,
+                                        fontWeight: 600,
+                                        letterSpacing: "0.15em",
+                                        textTransform: "uppercase",
+                                        transition: "background .3s ease-in-out, transform .15s ease-in-out",
                                     }}
                                 >
                                     {outOfStock ? "Out of Stock" : "Buy Now"}
