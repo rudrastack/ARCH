@@ -143,6 +143,12 @@ export default function ProductDetails() {
 
     //  Cart  
     const handleAdd = useCallback(async () => {
+        // User logged in nahi hai
+        if (!user) {
+            navigate("/login");
+            return false;
+        }
+
         try {
             await handleAddToCart({
                 productId: product?._id,
@@ -151,19 +157,43 @@ export default function ProductDetails() {
                 selectedColor,
                 selectedSize,
             });
-            setNotification({ type: "success", message: "PRODUCT ADDED TO CART" });
+
+            setNotification({
+                type: "success",
+                message: "PRODUCT ADDED TO CART"
+            });
+
             setCartFeedback(true);
+
             setTimeout(() => setCartFeedback(false), 2000);
             setTimeout(() => setNotification(null), 3000);
+
+            return true;
+
         } catch (error) {
             console.error("Add to cart failed:", error);
+
             setNotification({
                 type: "error",
-                message: error?.response?.data?.message || "FAILED TO ADD PRODUCT TO CART",
+                message:
+                    error?.response?.data?.message ||
+                    "FAILED TO ADD PRODUCT TO CART",
             });
+
             setTimeout(() => setNotification(null), 3000);
+
+            return false;
         }
-    }, [handleAddToCart, product, selectedVariant, qty, selectedColor, selectedSize]);
+    }, [
+        user,
+        navigate,
+        handleAddToCart,
+        product,
+        selectedVariant,
+        qty,
+        selectedColor,
+        selectedSize
+    ]);
 
     //  Data fetching  
     useEffect(() => {
@@ -437,9 +467,14 @@ export default function ProductDetails() {
 
                             {/* CTA Buttons */}
                             <div className="flex flex-col gap-3">
+
                                 {/* ADD TO CART */}
                                 <button
-                                    className="arks-add-btn transition-all duration-300 ease-in-out active:scale-[0.98] active:opacity-80"
+                                    className="
+                                    arks-add-btn
+                                    transition-all duration-300 ease-in-out
+                                    active:scale-[0.98]
+                                    active:opacity-80"
                                     disabled={outOfStock}
                                     onClick={handleAdd}
                                     style={{
@@ -465,13 +500,22 @@ export default function ProductDetails() {
                                             : "Add to Cart"}
                                 </button>
 
+
                                 {/* BUY NOW */}
                                 <button
-                                    className="arks-buy-btn transition-all duration-300 ease-in-out active:scale-[0.98] active:opacity-80"
+                                    className="
+                                    arks-buy-btn
+                                    transition-all duration-300 ease-in-out
+                                    active:scale-[0.98]
+                                    active:opacity-80"
                                     disabled={outOfStock}
                                     onClick={async () => {
-                                        await handleAdd();
-                                        navigate("/cart");
+                                        const added = await handleAdd();
+
+                                        // Only go to cart if product was actually added
+                                        if (added) {
+                                            navigate("/cart");
+                                        }
                                     }}
                                     style={{
                                         opacity: outOfStock ? 0.5 : 1,
@@ -491,6 +535,7 @@ export default function ProductDetails() {
                                 >
                                     {outOfStock ? "Out of Stock" : "Buy Now"}
                                 </button>
+
                             </div>
 
                             {/* Trust Badges */}
